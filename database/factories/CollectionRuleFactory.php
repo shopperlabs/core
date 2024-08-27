@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Shopper\Core\Database\Factories;
+namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Shopper\Core\Models\OrderItem;
+use Shopper\Core\Models\CollectionRule;
 
 /**
- * @extends Factory<OrderItem>
+ * @extends Factory<CollectionRule>
  */
-final class OrderItemFactory extends Factory
+final class CollectionRuleFactory extends Factory
 {
-    protected $model = OrderItem::class;
+    protected $model = CollectionRule::class;
 
     /**
      * Define the model's default state.
@@ -21,8 +21,6 @@ final class OrderItemFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-
-        ];
+        return [];
     }
 }

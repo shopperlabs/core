@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Shopper\Core\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Shopper\Core\Database\Factories\InventoryFactory;
 use Shopper\Core\Observers\InventoryObserver;
 
 /**
@@ -25,6 +27,7 @@ use Shopper\Core\Observers\InventoryObserver;
  * @property string|null $phone_number
  * @property bool $is_default
  */
+#[ObservedBy(InventoryObserver::class)]
 class Inventory extends Model
 {
     use HasFactory;
@@ -55,11 +58,9 @@ class Inventory extends Model
         return shopper_table('inventories');
     }
 
-    protected static function boot(): void
+    protected static function newFactory(): InventoryFactory
     {
-        parent::boot();
-
-        self::observe(InventoryObserver::class);
+        return InventoryFactory::new();
     }
 
     public function scopeDefault(Builder $query): Builder

@@ -7,7 +7,7 @@ namespace Shopper\Core\Exceptions;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 
-final class GeneralException extends Exception
+final class ShopperException extends Exception
 {
     /**
      * Error Message.

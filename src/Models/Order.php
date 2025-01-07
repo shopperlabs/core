@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopper\Core\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Shopper\Core\Database\Factories\OrderFactory;
 use Shopper\Core\Enum\OrderStatus;
 use Shopper\Core\Helpers\Price;
+use Shopper\Core\Observers\OrderObserver;
 
 /**
  * @property-read int $id
@@ -34,8 +36,9 @@ use Shopper\Core\Helpers\Price;
  * @property PaymentMethod | null $paymentMethod
  * @property Zone | null $zone
  * @property \Illuminate\Foundation\Auth\User | User $customer
- * @property \Illuminate\Database\Eloquent\Collection|\Shopper\Core\Models\OrderItem[] $items
+ * @property \Illuminate\Database\Eloquent\Collection | OrderItem[] $items
  */
+#[ObservedBy(OrderObserver::class)]
 class Order extends Model
 {
     use HasFactory;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Shopper\Core\Traits;
+namespace Shopper\Core\Models\Traits;
 
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\InteractsWithMedia;

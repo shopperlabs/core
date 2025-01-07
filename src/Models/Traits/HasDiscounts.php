@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Shopper\Core\Traits;
+namespace Shopper\Core\Models\Traits;
 
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Shopper\Core\Models\DiscountDetail;
 
-trait CanHaveDiscount
+trait HasDiscounts
 {
     public function discounts(): MorphToMany
     {

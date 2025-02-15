@@ -21,8 +21,8 @@ final class CountriesTableSeeder extends Seeder
     {
         Schema::disableForeignKeyConstraints();
 
-        foreach ($this->countries as $key => $country) {
-            Country::query()->create([
+        $countries = collect($this->countries)
+            ->map(fn ($country): array => [
                 'name' => $country['name']['common'],
                 'name_official' => $country['name']['official'],
                 'region' => $country['region'],
@@ -32,10 +32,12 @@ final class CountriesTableSeeder extends Seeder
                 'flag' => $country['flag'],
                 'latitude' => $country['latlng'][0],
                 'longitude' => $country['latlng'][1],
-                'phone_calling_code' => $country['idd'],
-                'currencies' => $country['currencies'],
-            ]);
-        }
+                'phone_calling_code' => json_encode($country['idd']),
+                'currencies' => json_encode($country['currencies']),
+            ])
+            ->toArray();
+
+        Country::query()->insert($countries);
 
         Schema::enableForeignKeyConstraints();
     }

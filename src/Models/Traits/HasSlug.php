@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Shopper\Core\Traits;
+namespace Shopper\Core\Models\Traits;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
 
 trait HasSlug
 {
-    protected function slug(): Attribute
-    {
-        return Attribute::set(fn ($value): string => $this->generateUniqueSlug($value));
-    }
-
     public static function findBySlug(string $slug): self
     {
-        return static::where('slug', $slug)->firstOrFail();
+        return static::query()->where('slug', $slug)->firstOrFail();
+    }
+
+    protected function slug(): Attribute
+    {
+        return Attribute::set(fn (string $value): string => $this->generateUniqueSlug($value));
     }
 
     protected function generateUniqueSlug(string $value): string
@@ -26,7 +26,7 @@ trait HasSlug
 
         while ($this->slugExists($slug, $this->exists ? $this->id : null)) {
             $counter++;
-            $slug = $originalSlug . '-' . $counter;
+            $slug = $originalSlug.'-'.$counter;
         }
 
         return $slug;
@@ -34,7 +34,7 @@ trait HasSlug
 
     private function slugExists(string $slug, ?int $ignoreId = null): bool
     {
-        $query = $this->where('slug', $slug);
+        $query = $this->newQuery()->where('slug', $slug);
 
         if ($ignoreId) {
             $query->where('id', '!=', $ignoreId);

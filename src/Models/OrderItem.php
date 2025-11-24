@@ -13,18 +13,19 @@ use Shopper\Core\Database\Factories\OrderItemFactory;
 
 /**
  * @property-read int $id
- * @property string $name
- * @property int $quantity
- * @property int $unit_price_amount
- * @property int $total
- * @property string $sku
- * @property int $product_id
- * @property string $product_type
- * @property int $order_id
- * @property Order $order
+ * @property-read string $name
+ * @property-read int $quantity
+ * @property-read int $unit_price_amount
+ * @property-read int $total
+ * @property-read string $sku
+ * @property-read int $product_id
+ * @property-read string $product_type
+ * @property-read int $order_id
+ * @property-read Order $order
  */
 class OrderItem extends Model
 {
+    /** @use HasFactory<OrderItemFactory> */
     use HasFactory;
 
     protected $guarded = [];
@@ -32,6 +33,22 @@ class OrderItem extends Model
     public function getTable(): string
     {
         return shopper_table('order_items');
+    }
+
+    /**
+     * @return MorphTo<Model, $this>
+     */
+    public function product(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * @return BelongsTo<Order, $this>
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'order_id');
     }
 
     protected static function newFactory(): OrderItemFactory
@@ -42,17 +59,7 @@ class OrderItem extends Model
     protected function total(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->unit_price_amount * $this->quantity
+            get: fn (): int => $this->unit_price_amount * $this->quantity
         );
-    }
-
-    public function product(): MorphTo
-    {
-        return $this->morphTo();
-    }
-
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class, 'order_id');
     }
 }

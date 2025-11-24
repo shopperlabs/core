@@ -12,16 +12,16 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Shopper\Core\Database\Factories\CollectionFactory;
 use Shopper\Core\Enum\CollectionType;
 use Shopper\Core\Models\Traits\HasMedia;
-use Shopper\Core\Traits\HasSlug;
+use Shopper\Core\Models\Traits\HasSlug;
 use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
 
 /**
  * @property-read int $id
- * @property CollectionType $type
- * @property string $name
- * @property string $slug
- * @property string|null $description
- * @property array<array-key, mixed>|null $metadata
+ * @property-read CollectionType $type
+ * @property-read string $name
+ * @property-read string $slug
+ * @property-read string|null $description
+ * @property-read array<string, mixed>|null $metadata
  * @property-read \Illuminate\Support\Collection<int, CollectionRule> $rules
  * @property-read \Illuminate\Support\Collection<int, Product> $products
  */
@@ -40,20 +40,6 @@ class Collection extends Model implements SpatieHasMedia
         return shopper_table('collections');
     }
 
-    protected function casts(): array
-    {
-        return [
-            'published_at' => 'datetime',
-            'metadata' => 'array',
-            'type' => CollectionType::class,
-        ];
-    }
-
-    protected static function newFactory(): CollectionFactory
-    {
-        return CollectionFactory::new();
-    }
-
     public function isAutomatic(): bool
     {
         return $this->type === CollectionType::Auto;
@@ -70,10 +56,10 @@ class Collection extends Model implements SpatieHasMedia
         $collectionRule = $this->rules->first();
 
         if ($this->isAutomatic()) {
-            $words = $collectionRule->getFormattedRule() . ' ' . $collectionRule->getFormattedOperator() . ' ' . $collectionRule->getFormattedValue();
+            $words = $collectionRule->getFormattedRule().' '.$collectionRule->getFormattedOperator().' '.$collectionRule->getFormattedValue();
             $rules = $this->rules()->count();
 
-            return $words . ' ' . ($rules >= 2 ? '+ ' . ($rules - 1) . __('shopper::words.other') : ''); // @phpstan-ignore-line
+            return $words.' '.($rules >= 2 ? '+ '.($rules - 1).__('shopper::words.other') : ''); // @phpstan-ignore-line
         }
 
         return null;
@@ -85,7 +71,7 @@ class Collection extends Model implements SpatieHasMedia
      */
     public function scopeManual(Builder $query): Builder
     {
-        return $query->where('type', CollectionType::Manual());
+        return $query->where('type', CollectionType::Manual);
     }
 
     /**
@@ -94,7 +80,7 @@ class Collection extends Model implements SpatieHasMedia
      */
     public function scopeAutomatic(Builder $query): Builder
     {
-        return $query->where('type', CollectionType::Auto());
+        return $query->where('type', CollectionType::Auto);
     }
 
     /**
@@ -112,5 +98,19 @@ class Collection extends Model implements SpatieHasMedia
     public function rules(): HasMany
     {
         return $this->hasMany(CollectionRule::class, 'collection_id');
+    }
+
+    protected static function newFactory(): CollectionFactory
+    {
+        return CollectionFactory::new();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'published_at' => 'datetime',
+            'metadata' => 'array',
+            'type' => CollectionType::class,
+        ];
     }
 }

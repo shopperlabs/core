@@ -18,6 +18,7 @@ abstract class Repository implements RepositoryContract
 
     protected DatabaseManager $database;
 
+    /** @var array<string, mixed> */
     protected array $with = [];
 
     public function __construct()
@@ -34,7 +35,7 @@ abstract class Repository implements RepositoryContract
 
         if (! $model instanceof Model) {
             throw new ModelRepositoryException(
-                message: "Class {$this->model()} must be an instance of " . Model::class
+                message: "Class {$this->model()} must be an instance of ".Model::class
             );
         }
 
@@ -100,7 +101,7 @@ abstract class Repository implements RepositoryContract
         );
     }
 
-    public function with(array | string $relations): self
+    public function with(array|string $relations): self
     {
         $this->with = Arr::wrap($relations);
 

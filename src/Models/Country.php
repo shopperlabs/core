@@ -8,40 +8,33 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Shopper\Core\Database\Factories\CountryFactory;
-use Shopper\Core\Traits\HasZones;
+use Shopper\Core\Models\Traits\HasZones;
 
 /**
  * @property-read int $id
- * @property string $name
- * @property string $name_official
- * @property string $region
- * @property string $subregion
- * @property string $cca3
- * @property string $cca2
- * @property string $flag
- * @property string $svg_flag
- * @property float $latitude
- * @property float $longitude
- * @property array $phone_calling_code
- * @property array $currencies
+ * @property-read string $name
+ * @property-read string $name_official
+ * @property-read string $region
+ * @property-read string $subregion
+ * @property-read string $cca3
+ * @property-read string $cca2
+ * @property-read string $flag
+ * @property-read string $svg_flag
+ * @property-read float $latitude
+ * @property-read float $longitude
+ * @property-read array<array-key, mixed> $phone_calling_code
+ * @property-read array<array-key, mixed> $currencies
  */
 class Country extends Model
 {
+    /** @use HasFactory<CountryFactory> */
     use HasFactory;
+
     use HasZones;
 
     public $timestamps = false;
 
     protected $guarded = [];
-
-    protected $casts = [
-        'phone_calling_code' => 'array',
-        'currencies' => 'array',
-    ];
-
-    protected $appends = [
-        'svg_flag',
-    ];
 
     public function getTable(): string
     {
@@ -53,10 +46,18 @@ class Country extends Model
         return CountryFactory::new();
     }
 
+    protected function casts(): array
+    {
+        return [
+            'phone_calling_code' => 'array',
+            'currencies' => 'array',
+        ];
+    }
+
     protected function svgFlag(): Attribute
     {
         return Attribute::get(
-            fn (): string => url(shopper()->prefix() . '/images/flags/' . mb_strtolower($this->cca2) . '.svg')
+            fn (): string => url(shopper()->prefix().'/images/flags/'.mb_strtolower($this->cca2).'.svg')
         );
     }
 }

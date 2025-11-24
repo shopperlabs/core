@@ -14,33 +14,24 @@ use Shopper\Core\Enum\Rule;
 
 /**
  * @property-read int $id
- * @property Rule $rule
- * @property Operator $operator
- * @property string $value
- * @property int $collection_id
- * @property Collection $collection
- * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property-read Rule $rule
+ * @property-read Operator $operator
+ * @property-read string $value
+ * @property-read int $collection_id
+ * @property-read Collection $collection
+ * @property-read Carbon $created_at
+ * @property-read Carbon $updated_at
  */
 class CollectionRule extends Model
 {
+    /** @use HasFactory<CollectionRuleFactory> */
     use HasFactory;
 
     protected $guarded = [];
 
-    protected $casts = [
-        'rule' => Rule::class,
-        'operator' => Operator::class,
-    ];
-
     public function getTable(): string
     {
         return shopper_table('collection_rules');
-    }
-
-    protected static function newFactory(): CollectionRuleFactory
-    {
-        return CollectionRuleFactory::new();
     }
 
     public function getFormattedRule(): string
@@ -62,8 +53,25 @@ class CollectionRule extends Model
         return $this->value;
     }
 
+    /**
+     * @return BelongsTo<Collection, $this>
+     */
     public function collection(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('shopper.models.collection'), 'collection_id');
+    }
+
+    protected static function newFactory(): CollectionRuleFactory
+    {
+        return CollectionRuleFactory::new();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'rule' => Rule::class,
+            'operator' => Operator::class,
+        ];
     }
 }

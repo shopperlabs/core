@@ -14,17 +14,18 @@ use Shopper\Core\Helpers\Price as PriceHelper;
 
 /**
  * @property-read int $id
- * @property int | null $amount
- * @property int | null $compare_amount
- * @property int | null $cost_amount
- * @property string $currency_code
- * @property int $currency_id
- * @property int $priceable_id
- * @property string $priceable_type
- * @property Currency $currency
+ * @property-read int|null $amount
+ * @property-read int|null $compare_amount
+ * @property-read int|null $cost_amount
+ * @property-read string $currency_code
+ * @property-read int $currency_id
+ * @property-read int $priceable_id
+ * @property-read string $priceable_type
+ * @property-read Currency $currency
  */
 class Price extends Model
 {
+    /** @use HasFactory<PriceFactory> */
     use HasFactory;
 
     protected $guarded = [];
@@ -34,38 +35,9 @@ class Price extends Model
         return shopper_table('prices');
     }
 
-    protected static function newFactory(): PriceFactory
-    {
-        return PriceFactory::new();
-    }
-
     public function currencyCode(): Attribute
     {
-        return Attribute::get(fn () => $this->loadMissing('currency')->currency->code);
-    }
-
-    protected function amount(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $value / 100,
-            set: fn ($value) => $value * 100,
-        );
-    }
-
-    protected function compareAmount(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $value / 100,
-            set: fn ($value) => $value * 100,
-        );
-    }
-
-    protected function costAmount(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $value / 100,
-            set: fn ($value) => $value * 100,
-        );
+        return Attribute::get(fn (): string => $this->loadMissing('currency')->currency->code);
     }
 
     public function amountPrice(): ?PriceHelper
@@ -95,13 +67,48 @@ class Price extends Model
         return PriceHelper::from($this->cost_amount);
     }
 
+    /**
+     * @return BelongsTo<Currency, $this>
+     */
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class, 'currency_id');
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function priceable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    protected static function newFactory(): PriceFactory
+    {
+        return PriceFactory::new();
+    }
+
+    protected function amount(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?int $value): float|int|null => $value ? $value / 100 : null,
+            set: fn (?int $value): ?int => $value ? $value * 100 : null,
+        );
+    }
+
+    protected function compareAmount(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?int $value): float|int|null => $value ? $value / 100 : null,
+            set: fn (?int $value): ?int => $value ? $value * 100 : null,
+        );
+    }
+
+    protected function costAmount(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?int $value): float|int|null => $value ? $value / 100 : null,
+            set: fn (?int $value): ?int => $value ? $value * 100 : null,
+        );
     }
 }

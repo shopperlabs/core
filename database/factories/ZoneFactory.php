@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopper\Core\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Shopper\Core\Models\Currency;
 use Shopper\Core\Models\Zone;
 
 /**
@@ -21,6 +22,18 @@ class ZoneFactory extends Factory
      */
     public function definition(): array
     {
-        return [];
+        $currency = Currency::query()->firstOrCreate(
+            ['code' => 'USD'],
+            [
+                'name' => 'US Dollar',
+                'symbol' => '$',
+                'format' => '$1,234.56',
+            ]
+        );
+
+        return [
+            'name' => $this->faker->unique()->word().' Zone',
+            'currency_id' => $currency->id,
+        ];
     }
 }

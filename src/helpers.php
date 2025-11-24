@@ -12,6 +12,7 @@ use Shopper\Core\Models\Setting;
 if (! function_exists('generate_number')) {
     function generate_number(): string
     {
+        /** @var ?Order $lastOrder */
         $lastOrder = Order::query()->orderBy('id', 'desc')
             ->limit(1)
             ->first();
@@ -33,7 +34,7 @@ if (! function_exists('shopper_table')) {
     function shopper_table(string $table): string
     {
         if (config('shopper.core.table_prefix') !== '') {
-            return config('shopper.core.table_prefix') . $table;
+            return config('shopper.core.table_prefix').$table;
         }
 
         return $table;
@@ -43,6 +44,7 @@ if (! function_exists('shopper_table')) {
 if (! function_exists('shopper_asset')) {
     function shopper_asset(string $file): string
     {
+        // @phpstan-ignore-next-line
         return Storage::disk(config('shopper.media.storage.disk_name'))->url($file);
     }
 }
@@ -67,9 +69,9 @@ if (! function_exists('shopper_currency')) {
 }
 
 if (! function_exists('shopper_money_format')) {
-    function shopper_money_format(int | float $amount, ?string $currency = null): string
+    function shopper_money_format(int|float $amount, ?string $currency = null): string
     {
-        return Number::currency(
+        return (string) Number::currency(
             number: $amount,
             in: $currency ?? shopper_currency(),
             locale: app()->getLocale()
@@ -91,12 +93,15 @@ if (! function_exists('shopper_setting')) {
 }
 
 if (! function_exists('useTryCatch')) {
+    /**
+     * @return array<array-key, mixed>
+     */
     function useTryCatch(Closure $closure, ?Closure $catchable = null): array
     {
         $result = null;
         $throwable = null;
 
-        $catch = $catchable ?? fn (Throwable $exception) => $exception;
+        $catch = $catchable ?? fn (Throwable $exception): Throwable => $exception;
 
         try {
             $result = $closure();

@@ -12,43 +12,47 @@ use Shopper\Core\Database\Factories\ReviewFactory;
 
 /**
  * @property-read int $id
- * @property bool $approved
- * @property bool $is_recommended
- * @property string | null $title
- * @property string | null $content
- * @property int $rating
+ * @property-read bool $approved
+ * @property-read bool $is_recommended
+ * @property-read string|null $title
+ * @property-read string|null $content
+ * @property-read int $reviewrateable_id
+ * @property-read string $reviewrateable_type
+ * @property-read int $author_id
+ * @property-read string $author_type
+ * @property-read int $rating
  */
 class Review extends Model
 {
+    /** @use HasFactory<ReviewFactory> */
     use HasFactory;
 
     protected $guarded = [];
-
-    protected $casts = [
-        'is_recommended' => 'boolean',
-        'approved' => 'boolean',
-    ];
 
     public function getTable(): string
     {
         return shopper_table('reviews');
     }
 
-    protected static function newFactory(): ReviewFactory
-    {
-        return ReviewFactory::new();
-    }
-
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function reviewrateable(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function author(): MorphTo
     {
         return $this->morphTo('author');
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function createRating(Model $reviewrateable, array $data, Model $author): self
     {
         $rating = new self;
@@ -62,58 +66,97 @@ class Review extends Model
         return $rating;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateRating(int $id, array $data): self
     {
-        $rating = self::find($id);
+        /** @var Review $rating */
+        $rating = self::query()->find($id);
         $rating->update($data);
 
         return $rating;
     }
 
+    /**
+     * @return Collection<int, Review>
+     */
     public function getAllRatings(int $id, string $sort = 'desc'): Collection
     {
-        return $this->newQuery()->select('*')
+        /** @var Collection<int, Review> $results */
+        $results = $this->newQuery()
+            ->select('*')
             ->where('reviewrateable_id', $id)
             ->orderBy('created_at', $sort)
             ->get();
+
+        return $results;
     }
 
+    /**
+     * @return Collection<int, Review>
+     */
     public function getApprovedRatings(int $id, string $sort = 'desc'): Collection
     {
-        return $this->newQuery()->select('*')
+        /** @var Collection<int, Review> $results */
+        $results = $this->newQuery()
+            ->select('*')
             ->where('reviewrateable_id', $id)
             ->where('approved', true)
             ->orderBy('created_at', $sort)
             ->get();
+
+        return $results;
     }
 
+    /**
+     * @return Collection<int, Review>
+     */
     public function getNotApprovedRatings(int $id, string $sort = 'desc'): Collection
     {
-        return $this->newQuery()->select('*')
+        /** @var Collection<int, Review> $results */
+        $results = $this->newQuery()
+            ->select('*')
             ->where('reviewrateable_id', $id)
             ->where('approved', false)
             ->orderBy('created_at', $sort)
             ->get();
+
+        return $results;
     }
 
+    /**
+     * @return Collection<int, Review>
+     */
     public function getRecentRatings(int $id, int $limit = 5, string $sort = 'desc'): Collection
     {
-        return $this->newQuery()->select('*')
+        /** @var Collection<int, Review> $results */
+        $results = $this->newQuery()
+            ->select('*')
             ->where('reviewrateable_id', $id)
             ->where('approved', true)
             ->orderBy('created_at', $sort)
             ->limit($limit)
             ->get();
+
+        return $results;
     }
 
+    /**
+     * @return Collection<int, Review>
+     */
     public function getRecentUserRatings(int $id, int $limit = 5, bool $approved = true, string $sort = 'desc'): Collection
     {
-        return $this->newQuery()->select('*')
+        /** @var Collection<int, Review> $results */
+        $results = $this->newQuery()
+            ->select('*')
             ->where('author_id', $id)
             ->where('approved', $approved)
             ->orderBy('created_at', $sort)
             ->limit($limit)
             ->get();
+
+        return $results;
     }
 
     public function deleteRating(int $id): ?bool
@@ -123,8 +166,19 @@ class Review extends Model
 
     public function updatedApproved(bool $approved = false): void
     {
-        $this->approved = $approved;
+        $this->update(['approved' => $approved]);
+    }
 
-        $this->save();
+    protected static function newFactory(): ReviewFactory
+    {
+        return ReviewFactory::new();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_recommended' => 'boolean',
+            'approved' => 'boolean',
+        ];
     }
 }

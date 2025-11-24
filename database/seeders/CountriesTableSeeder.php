@@ -10,11 +10,12 @@ use Shopper\Core\Models\Country;
 
 final class CountriesTableSeeder extends Seeder
 {
+    /** @var array<int, array<string, mixed>> */
     protected array $countries;
 
     public function __construct()
     {
-        $this->countries = include __DIR__ . '/../data/countries.php';
+        $this->countries = include __DIR__.'/../data/countries.php';
     }
 
     public function run(): void
@@ -22,7 +23,7 @@ final class CountriesTableSeeder extends Seeder
         Schema::disableForeignKeyConstraints();
 
         $countries = collect($this->countries)
-            ->map(fn ($country): array => [
+            ->map(fn (array $country): array => [
                 'name' => $country['name']['common'],
                 'name_official' => $country['name']['official'],
                 'region' => $country['region'],

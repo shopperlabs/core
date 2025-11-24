@@ -20,7 +20,7 @@ final class AddressObserver
         $this->ensureOnlyOneDefaultBilling($address);
     }
 
-    protected function ensureOnlyOneDefaultShipping(Address $address): void
+    private function ensureOnlyOneDefaultShipping(Address $address): void
     {
         if ($address->shipping_default) {
             $defaultAddress = Address::query()
@@ -29,14 +29,15 @@ final class AddressObserver
                 ->where('shipping_default', true)
                 ->first();
 
-            if ($defaultAddress) {
-                $defaultAddress->shipping_default = false;
-                $defaultAddress->saveQuietly();
+            if ($defaultAddress instanceof Address) {
+                $defaultAddress->updateQuietly([
+                    'shipping_default' => false,
+                ]);
             }
         }
     }
 
-    protected function ensureOnlyOneDefaultBilling(Address $address): void
+    private function ensureOnlyOneDefaultBilling(Address $address): void
     {
         if ($address->billing_default) {
             $defaultAddress = Address::query()
@@ -45,9 +46,10 @@ final class AddressObserver
                 ->where('billing_default', true)
                 ->first();
 
-            if ($defaultAddress) {
-                $defaultAddress->billing_default = false;
-                $defaultAddress->saveQuietly();
+            if ($defaultAddress instanceof Address) {
+                $defaultAddress->updateQuietly([
+                    'billing_default' => false,
+                ]);
             }
         }
     }

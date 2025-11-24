@@ -14,19 +14,19 @@ use Shopper\Core\Enum\DiscountType;
 
 /**
  * @property-read int $id
- * @property string $code
- * @property DiscountType $type
- * @property int $value
- * @property string $apply_to
- * @property string $eligibility
- * @property int|null $usage_limit
- * @property int $total_use
- * @property int | null $zone_id
- * @property bool $usage_limit_per_user
- * @property bool $is_active
- * @property array $metadata
- * @property \Illuminate\Support\Carbon $start_at
- * @property \Illuminate\Support\Carbon|null $end_at
+ * @property-read string $code
+ * @property-read DiscountType $type
+ * @property-read int $value
+ * @property-read string $apply_to
+ * @property-read string $eligibility
+ * @property-read int|null $usage_limit
+ * @property-read int $total_use
+ * @property-read int|null $zone_id
+ * @property-read bool $usage_limit_per_user
+ * @property-read bool $is_active
+ * @property-read array<string, mixed>|null $metadata
+ * @property-read \Illuminate\Support\Carbon $start_at
+ * @property-read \Illuminate\Support\Carbon|null $end_at
  * @property-read Zone $zone
  * @property-read \Illuminate\Database\Eloquent\Collection<array-key, DiscountDetail> $items
  */
@@ -36,35 +36,6 @@ class Discount extends Model
     use HasFactory;
 
     protected $guarded = [];
-
-    protected static function newFactory(): DiscountFactory
-    {
-        return DiscountFactory::new();
-    }
-
-    protected function value(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $this->type === DiscountType::FixedAmount
-                ? $value / 100
-                : $value,
-            set: fn ($value) => $this->type === DiscountType::FixedAmount
-                ? $value * 100
-                : $value,
-        );
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'usage_limit_per_user' => 'boolean',
-            'start_at' => 'datetime',
-            'end_at' => 'datetime',
-            'metadata' => 'array',
-            'type' => DiscountType::class,
-        ];
-    }
 
     public function getTable(): string
     {
@@ -94,5 +65,34 @@ class Discount extends Model
     public function zone(): BelongsTo
     {
         return $this->belongsTo(Zone::class, 'zone_id');
+    }
+
+    protected static function newFactory(): DiscountFactory
+    {
+        return DiscountFactory::new();
+    }
+
+    protected function value(): Attribute
+    {
+        return Attribute::make(
+            get: fn (int $value): int => $this->type === DiscountType::FixedAmount
+                ? $value / 100
+                : $value,
+            set: fn (int $value): int => $this->type === DiscountType::FixedAmount
+                ? $value * 100
+                : $value,
+        );
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'usage_limit_per_user' => 'boolean',
+            'start_at' => 'datetime',
+            'end_at' => 'datetime',
+            'metadata' => 'array',
+            'type' => DiscountType::class,
+        ];
     }
 }

@@ -10,11 +10,12 @@ use Shopper\Core\Models\Currency;
 
 final class CurrenciesTableSeeder extends Seeder
 {
+    /** @var array<string, array<string, mixed>> */
     protected array $currencies;
 
     public function __construct()
     {
-        $this->currencies = include __DIR__ . '/../data/currencies.php';
+        $this->currencies = include __DIR__.'/../data/currencies.php';
     }
 
     public function run(): void
@@ -22,7 +23,7 @@ final class CurrenciesTableSeeder extends Seeder
         Schema::disableForeignKeyConstraints();
 
         $currencies = collect($this->currencies)
-            ->map(fn ($currency, $code): array => [
+            ->map(fn (array $currency, string $code): array => [
                 'code' => $code,
                 'name' => $currency['name'],
                 'symbol' => $currency['symbol'],

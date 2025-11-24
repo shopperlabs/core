@@ -5,61 +5,36 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute as LaravelAttribute;
+use Illuminate\Database\Eloquent\Casts\Attribute as CastAttribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Shopper\Core\Database\Factories\AttributeFactory;
 use Shopper\Core\Enum\FieldType;
-use Shopper\Core\Traits\HasSlug;
+use Shopper\Core\Models\Traits\HasSlug;
 
 /**
  * @property-read int $id
- * @property string $name
- * @property string $slug
- * @property string | null $description
- * @property FieldType $type
- * @property bool $is_enabled
- * @property bool $is_searchable
- * @property bool $is_filterable
- * @property string|null $icon
- * @property string $type_formatted
- * @property \Illuminate\Database\Eloquent\Collection | AttributeValue[] $values
+ * @property-read string $name
+ * @property-read string $slug
+ * @property-read string|null $description
+ * @property-read FieldType $type
+ * @property-read bool $is_enabled
+ * @property-read bool $is_searchable
+ * @property-read bool $is_filterable
+ * @property-read string|null $icon
+ * @property-read string $type_formatted
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, AttributeValue> $values
  */
 class Attribute extends Model
 {
+    /** @use HasFactory<AttributeFactory> */
     use HasFactory;
+
     use HasSlug;
 
     protected $guarded = [];
-
-    public function getTable(): string
-    {
-        return shopper_table('attributes');
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'is_enabled' => 'boolean',
-            'is_searchable' => 'boolean',
-            'is_filterable' => 'boolean',
-            'type' => FieldType::class,
-        ];
-    }
-
-    protected static function newFactory(): AttributeFactory
-    {
-        return AttributeFactory::new();
-    }
-
-    protected function typeFormatted(): LaravelAttribute
-    {
-        return LaravelAttribute::make(
-            get: fn (): string => self::typesFields()[$this->type->value]
-        );
-    }
 
     /**
      * @return array<array-key, string>
@@ -70,7 +45,7 @@ class Attribute extends Model
     }
 
     /**
-     * @return array<array-key, mixed>
+     * @return array<array-key, FieldType>
      */
     public static function fieldsWithValues(): array
     {
@@ -79,6 +54,11 @@ class Attribute extends Model
             FieldType::ColorPicker,
             FieldType::Select,
         ];
+    }
+
+    public function getTable(): string
+    {
+        return shopper_table('attributes');
     }
 
     public function hasMultipleValues(): bool
@@ -103,9 +83,7 @@ class Attribute extends Model
 
     public function updateStatus(bool $status = true): void
     {
-        $this->is_enabled = $status;
-
-        $this->save();
+        $this->update(['is_enabled' => $status]);
     }
 
     /**
@@ -154,5 +132,27 @@ class Attribute extends Model
                 'attribute_value_id',
                 'attribute_custom_value',
             ]);
+    }
+
+    protected static function newFactory(): AttributeFactory
+    {
+        return AttributeFactory::new();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_enabled' => 'boolean',
+            'is_searchable' => 'boolean',
+            'is_filterable' => 'boolean',
+            'type' => FieldType::class,
+        ];
+    }
+
+    protected function typeFormatted(): CastAttribute
+    {
+        return CastAttribute::make(
+            get: fn (): string => self::typesFields()[$this->type->value]
+        );
     }
 }

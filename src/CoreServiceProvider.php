@@ -15,6 +15,7 @@ final class CoreServiceProvider extends PackageServiceProvider
 {
     use HasRegisterConfigAndMigrationFiles;
 
+    /** @var string[] */
     protected array $configFiles = [
         'core',
         'media',
@@ -22,7 +23,7 @@ final class CoreServiceProvider extends PackageServiceProvider
         'orders',
     ];
 
-    protected string $root = __DIR__ . '/..';
+    protected string $root = __DIR__.'/..';
 
     public function configurePackage(Package $package): void
     {

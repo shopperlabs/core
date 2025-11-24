@@ -19,44 +19,44 @@ use Shopper\Core\Observers\OrderObserver;
 
 /**
  * @property-read int $id
- * @property string $number
- * @property int $price_amount
- * @property string $notes
- * @property string $currency_code
- * @property int $total_amount
- * @property int | null $zone_id
- * @property int | null $shipping_address_id
- * @property int | null $payment_method_id
- * @property int | null $billing_address_id
- * @property int | null $customer_id
- * @property int | null $channel_id
- * @property int | null $parent_order_id
- * @property \Illuminate\Support\Carbon | null $canceled_at
- * @property OrderStatus $status
+ * @property-read string $number
+ * @property-read int $price_amount
+ * @property-read string $notes
+ * @property-read string $currency_code
+ * @property-read int $total_amount
+ * @property-read int|null $zone_id
+ * @property-read int|null $shipping_address_id
+ * @property-read int|null $payment_method_id
+ * @property-read int|null $billing_address_id
+ * @property-read int|null $customer_id
+ * @property-read int|null $channel_id
+ * @property-read int|null $parent_order_id
+ * @property-read \Illuminate\Support\Carbon|null $canceled_at
+ * @property-read OrderStatus $status
  * @property-read CarrierOption $shippingOption
- * @property-read OrderAddress | null $shippingAddress
- * @property-read OrderAddress | null $billingAddress
- * @property-read PaymentMethod | null $paymentMethod
- * @property-read Zone | null $zone
- * @property-read Channel | null $channel
- * @property-read Order | null $parent
- * @property-read \Illuminate\Foundation\Auth\User | User $customer
+ * @property-read OrderAddress|null $shippingAddress
+ * @property-read OrderAddress|null $billingAddress
+ * @property-read PaymentMethod|null $paymentMethod
+ * @property-read Zone|null $zone
+ * @property-read Channel|null $channel
+ * @property-read Order|null $parent
+ * @property-read \Illuminate\Foundation\Auth\User|User $customer
  * @property-read \Illuminate\Support\Collection<int, OrderItem> $items
  * @property-read \Illuminate\Support\Collection<int, Order> $children
  */
 #[ObservedBy(OrderObserver::class)]
 class Order extends Model
 {
+    /** @use HasFactory<OrderFactory> */
     use HasFactory;
+
     use SoftDeletes;
 
     protected $guarded = [];
 
-    protected $casts = [
-        'status' => OrderStatus::class,
-        'canceled_at' => 'datetime',
-    ];
-
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
     public function __construct(array $attributes = [])
     {
         if (! isset($attributes['status'])) {
@@ -71,15 +71,10 @@ class Order extends Model
         return shopper_table('orders');
     }
 
-    protected static function newFactory(): OrderFactory
-    {
-        return OrderFactory::new();
-    }
-
     public function totalAmount(): Attribute
     {
         return Attribute::get(
-            fn () => Price::from(amount: $this->total(), currency: $this->currency_code)
+            fn (): Price => Price::from(amount: $this->total(), currency: $this->currency_code)
         );
     }
 
@@ -123,59 +118,109 @@ class Order extends Model
         return $this->status === OrderStatus::Paid;
     }
 
+    /**
+     * @return BelongsTo<OrderAddress, $this>
+     */
     public function shippingAddress(): BelongsTo
     {
         return $this->belongsTo(OrderAddress::class, 'shipping_address_id');
     }
 
+    /**
+     * @return BelongsTo<OrderAddress, $this>
+     */
     public function billingAddress(): BelongsTo
     {
         return $this->belongsTo(OrderAddress::class, 'billing_address_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function customer(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('auth.providers.users.model', User::class), 'customer_id');
     }
 
+    /**
+     * @return BelongsTo<Channel, $this>
+     */
     public function channel(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('shopper.models.channel'), 'channel_id');
     }
 
+    /**
+     * @return BelongsTo<PaymentMethod, $this>
+     */
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
 
+    /**
+     * @return BelongsTo<$this, $this>
+     */
     public function parent(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(self::class, 'parent_order_id');
     }
 
+    /**
+     * @return HasMany<$this, $this>
+     */
     public function children(): HasMany
     {
+        // @phpstan-ignore-next-line
         return $this->hasMany(self::class, 'parent_order_id');
     }
 
+    /**
+     * @return BelongsTo<Zone, $this>
+     */
     public function zone(): BelongsTo
     {
         return $this->belongsTo(Zone::class, 'zone_id');
     }
 
+    /**
+     * @return HasOne<OrderRefund, $this>
+     */
     public function refund(): HasOne
     {
         return $this->hasOne(OrderRefund::class);
     }
 
+    /**
+     * @return HasMany<OrderItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
+    /**
+     * @return BelongsTo<CarrierOption, $this>
+     */
     public function shippingOption(): BelongsTo
     {
         return $this->belongsTo(CarrierOption::class, 'shipping_option_id');
+    }
+
+    protected static function newFactory(): OrderFactory
+    {
+        return OrderFactory::new();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'status' => OrderStatus::class,
+            'canceled_at' => 'datetime',
+        ];
     }
 
     protected function setDefaultOrderStatus(): void

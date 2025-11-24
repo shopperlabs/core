@@ -12,33 +12,43 @@ use Shopper\Core\Database\Factories\OrderShippingFactory;
 
 /**
  * @property-read int $id
- * @property Carbon $shipped_at
- * @property Carbon|null $received_at
- * @property Carbon|null $returned_at
- * @property string|null $tracking_number
- * @property string|null $tracking_url
- * @property array|null $voucher
- * @property int $order_id
- * @property int | null $carrier_id
+ * @property-read Carbon $shipped_at
+ * @property-read Carbon|null $received_at
+ * @property-read Carbon|null $returned_at
+ * @property-read string|null $tracking_number
+ * @property-read string|null $tracking_url
+ * @property-read array<string, mixed>|null $voucher
+ * @property-read int $order_id
+ * @property-read int|null $carrier_id
  * @property-read Order $order
- * @property-read Carrier | null $carrier
+ * @property-read Carrier|null $carrier
  */
 class OrderShipping extends Model
 {
+    /** @use HasFactory<OrderShippingFactory> */
     use HasFactory;
 
     protected $guarded = [];
 
-    protected $casts = [
-        'shipped_at' => 'datetime',
-        'received_at' => 'datetime',
-        'returned_at' => 'datetime',
-        'voucher' => 'json',
-    ];
-
     public function getTable(): string
     {
         return shopper_table('order_shipping');
+    }
+
+    /**
+     * @return BelongsTo<Order, $this>
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    /**
+     * @return BelongsTo<Carrier, $this>
+     */
+    public function carrier(): BelongsTo
+    {
+        return $this->belongsTo(Carrier::class, 'carrier_id');
     }
 
     protected static function newFactory(): OrderShippingFactory
@@ -46,13 +56,13 @@ class OrderShipping extends Model
         return OrderShippingFactory::new();
     }
 
-    public function order(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Order::class, 'order_id');
-    }
-
-    public function carrier(): BelongsTo
-    {
-        return $this->belongsTo(Carrier::class, 'carrier_id');
+        return [
+            'shipped_at' => 'datetime',
+            'received_at' => 'datetime',
+            'returned_at' => 'datetime',
+            'voucher' => 'json',
+        ];
     }
 }

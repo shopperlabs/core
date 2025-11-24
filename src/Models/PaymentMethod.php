@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Shopper\Core\Database\Factories\PaymentMethodFactory;
-use Shopper\Core\Traits\HasSlug;
-use Shopper\Core\Traits\HasZones;
+use Shopper\Core\Models\Traits\HasSlug;
+use Shopper\Core\Models\Traits\HasZones;
 
 /**
  * @property-read int $id
@@ -24,35 +24,17 @@ use Shopper\Core\Traits\HasZones;
  */
 class PaymentMethod extends Model
 {
+    /** @use HasFactory<PaymentMethodFactory> */
     use HasFactory;
+
     use HasSlug;
     use HasZones;
 
     protected $guarded = [];
 
-    protected $casts = [
-        'is_enabled' => 'boolean',
-    ];
-
-    protected $appends = [
-        'logo_url',
-    ];
-
     public function getTable(): string
     {
         return shopper_table('payment_methods');
-    }
-
-    protected static function newFactory(): PaymentMethodFactory
-    {
-        return PaymentMethodFactory::new();
-    }
-
-    protected function LogoUrl(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->logo ? shopper_asset($this->logo) : null,
-        );
     }
 
     /**
@@ -62,5 +44,24 @@ class PaymentMethod extends Model
     public function scopeEnabled(Builder $query): Builder
     {
         return $query->where('is_enabled', true);
+    }
+
+    protected static function newFactory(): PaymentMethodFactory
+    {
+        return PaymentMethodFactory::new();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_enabled' => 'boolean',
+        ];
+    }
+
+    protected function LogoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?string => $this->logo ? shopper_asset($this->logo) : null,
+        );
     }
 }

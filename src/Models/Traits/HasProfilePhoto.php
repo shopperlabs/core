@@ -13,13 +13,13 @@ trait HasProfilePhoto
     {
         return Attribute::make(
             get: fn (): string => $this->avatar_type === 'storage'
-                ? Storage::disk(config('shopper.media.storage.disk_name'))->url($this->avatar_location)
+                ? Storage::disk(config('shopper.media.storage.disk_name'))->url($this->avatar_location) // @phpstan-ignore-line
                 : $this->defaultProfilePhotoUrl()
         );
     }
 
     protected function defaultProfilePhotoUrl(): string
     {
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name) . '&color=' . config('shopper.admin.avatar.color') . '&background=' . config('shopper.admin.avatar.bg_color');
+        return 'https://ui-avatars.com/api/?name='.urlencode($this->full_name).'&color='.config('shopper.admin.avatar.color').'&background='.config('shopper.admin.avatar.bg_color');
     }
 }

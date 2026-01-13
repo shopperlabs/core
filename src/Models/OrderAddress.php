@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Shopper\Core\Contracts\ShopperUser;
 use Shopper\Core\Database\Factories\OrderAddressFactory;
+use Shopper\Core\Models\Contracts\OrderAddress as OrderAddressContract;
 
 /**
  * @property-read int $id
@@ -17,14 +19,15 @@ use Shopper\Core\Database\Factories\OrderAddressFactory;
  * @property-read string $first_name
  * @property-read string $full_name
  * @property-read string $street_address
- * @property-read string|null $street_address_plus
+ * @property-read ?string $street_address_plus
  * @property-read string $postal_code
  * @property-read string $city
- * @property-read string|null $company
- * @property-read string|null $phone
- * @property-read string|null $country_name
+ * @property-read ?string $company
+ * @property-read ?string $phone
+ * @property-read ?string $country_name
+ * @property-read ShopperUser $customer
  */
-class OrderAddress extends Model
+class OrderAddress extends Model implements OrderAddressContract
 {
     /** @use HasFactory<OrderAddressFactory> */
     use HasFactory;
@@ -45,12 +48,12 @@ class OrderAddress extends Model
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<ShopperUser, $this>
      */
     public function customer(): BelongsTo
     {
         // @phpstan-ignore-next-line
-        return $this->belongsTo(config('auth.providers.users.model', User::class), 'customer_id');
+        return $this->belongsTo(config('auth.providers.users.model'), 'customer_id');
     }
 
     protected static function newFactory(): OrderAddressFactory

@@ -11,19 +11,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Shopper\Core\Database\Factories\PriceFactory;
 use Shopper\Core\Helpers\Price as PriceHelper;
+use Shopper\Core\Models\Contracts\Price as PriceContract;
 
 /**
  * @property-read int $id
- * @property-read int|null $amount
- * @property-read int|null $compare_amount
- * @property-read int|null $cost_amount
+ * @property-read ?int $amount
+ * @property-read ?int $compare_amount
+ * @property-read ?int $cost_amount
  * @property-read string $currency_code
  * @property-read int $currency_id
  * @property-read int $priceable_id
  * @property-read string $priceable_type
  * @property-read Currency $currency
  */
-class Price extends Model
+class Price extends Model implements PriceContract
 {
     /** @use HasFactory<PriceFactory> */
     use HasFactory;

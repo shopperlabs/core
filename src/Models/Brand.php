@@ -9,31 +9,39 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Shopper\Core\Database\Factories\BrandFactory;
+use Shopper\Core\Models\Contracts\Brand as BrandContract;
 use Shopper\Core\Models\Traits\HasMedia;
 use Shopper\Core\Models\Traits\HasSlug;
+use Shopper\Core\Traits\HasModelContract;
 use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
 
 /**
  * @property-read int $id
  * @property-read string $name
- * @property-read string|null $slug
- * @property-read string|null $website
- * @property-read string|null $description
+ * @property-read ?string $slug
+ * @property-read ?string $website
+ * @property-read ?string $description
  * @property-read int $position
  * @property-read bool $is_enabled
- * @property-read string|null $seo_title
- * @property-read string|null $seo_description
+ * @property-read ?string $seo_title
+ * @property-read ?string $seo_description
  * @property-read array<string, mixed>|null $metadata
  */
-class Brand extends Model implements SpatieHasMedia
+class Brand extends Model implements BrandContract, SpatieHasMedia
 {
     /** @use HasFactory<BrandFactory> */
     use HasFactory;
 
     use HasMedia;
+    use HasModelContract;
     use HasSlug;
 
     protected $guarded = [];
+
+    public static function configKey(): string
+    {
+        return 'brand';
+    }
 
     public function getTable(): string
     {

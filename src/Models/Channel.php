@@ -6,34 +6,43 @@ namespace Shopper\Core\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Shopper\Core\Database\Factories\ChannelFactory;
+use Shopper\Core\Models\Contracts\Channel as ChannelContract;
 use Shopper\Core\Models\Traits\HasSlug;
 use Shopper\Core\Observers\ChannelObserver;
+use Shopper\Core\Traits\HasModelContract;
 
 /**
  * @property-read int $id
  * @property-read string $name
- * @property-read string|null $slug
- * @property-read string|null $description
- * @property-read string|null $timezone
- * @property-read string|null $url
+ * @property-read ?string $slug
+ * @property-read ?string $description
+ * @property-read ?string $timezone
+ * @property-read ?string $url
  * @property-read bool $is_default
  * @property-read bool $is_enabled
- * @property-read array<array-key, mixed>|null $metadata
- * @property-read \Illuminate\Support\Collection<int, Product> $products
+ * @property-read array<string, mixed>|null $metadata
+ * @property-read Collection<int, Contracts\Product> $products
  */
 #[ObservedBy(ChannelObserver::class)]
-class Channel extends Model
+class Channel extends Model implements ChannelContract
 {
     /** @use HasFactory<ChannelFactory> */
     use HasFactory;
 
+    use HasModelContract;
     use HasSlug;
 
     protected $guarded = [];
+
+    public static function configKey(): string
+    {
+        return 'channel';
+    }
 
     public function getTable(): string
     {

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Shopper\Core\Database\Factories\CountryFactory;
+use Shopper\Core\Models\Contracts\Country as CountryContract;
 use Shopper\Core\Models\Traits\HasZones;
 
 /**
@@ -22,10 +23,10 @@ use Shopper\Core\Models\Traits\HasZones;
  * @property-read string $svg_flag
  * @property-read float $latitude
  * @property-read float $longitude
- * @property-read array<array-key, mixed> $phone_calling_code
- * @property-read array<array-key, mixed> $currencies
+ * @property-read array<string, mixed> $phone_calling_code
+ * @property-read array<string, mixed> $currencies
  */
-class Country extends Model
+class Country extends Model implements CountryContract
 {
     /** @use HasFactory<CountryFactory> */
     use HasFactory;
@@ -39,6 +40,11 @@ class Country extends Model
     public function getTable(): string
     {
         return shopper_table('countries');
+    }
+
+    public function countryFlag(): string
+    {
+        return url(shopper()->prefix().'/images/flags/'.mb_strtolower($this->cca2).'.svg');
     }
 
     protected static function newFactory(): CountryFactory
@@ -57,7 +63,7 @@ class Country extends Model
     protected function svgFlag(): Attribute
     {
         return Attribute::get(
-            fn (): string => url(shopper()->prefix().'/images/flags/'.mb_strtolower($this->cca2).'.svg')
+            fn (): string => $this->countryFlag()
         );
     }
 }

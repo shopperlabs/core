@@ -4,26 +4,27 @@ declare(strict_types=1);
 
 namespace Shopper\Core\Models;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Shopper\Core\Database\Factories\OrderShippingFactory;
+use Shopper\Core\Models\Contracts\OrderShipping as OrderShippingContract;
 
 /**
  * @property-read int $id
- * @property-read Carbon $shipped_at
- * @property-read Carbon|null $received_at
- * @property-read Carbon|null $returned_at
- * @property-read string|null $tracking_number
- * @property-read string|null $tracking_url
+ * @property-read CarbonInterface $shipped_at
+ * @property-read ?CarbonInterface $received_at
+ * @property-read ?CarbonInterface $returned_at
+ * @property-read ?string $tracking_number
+ * @property-read ?string $tracking_url
  * @property-read array<string, mixed>|null $voucher
  * @property-read int $order_id
- * @property-read int|null $carrier_id
+ * @property-read ?int $carrier_id
  * @property-read Order $order
- * @property-read Carrier|null $carrier
+ * @property-read ?Carrier $carrier
  */
-class OrderShipping extends Model
+class OrderShipping extends Model implements OrderShippingContract
 {
     /** @use HasFactory<OrderShippingFactory> */
     use HasFactory;

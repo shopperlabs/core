@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Shopper\Core\Database\Factories\CarrierOptionFactory;
+use Shopper\Core\Models\Contracts\CarrierOption as CarrierOptionContract;
 
 /**
  * @property-read int $id
@@ -18,11 +19,11 @@ use Shopper\Core\Database\Factories\CarrierOptionFactory;
  * @property-read int $zone_id
  * @property-read int $carrier_id
  * @property-read bool $is_enabled
- * @property-read Zone $zone
- * @property-read Carrier $carrier
+ * @property-read Contracts\Zone $zone
+ * @property-read Contracts\Carrier $carrier
  * @property-read array<string, mixed>|null $metadata
  */
-class CarrierOption extends Model
+class CarrierOption extends Model implements CarrierOptionContract
 {
     /** @use HasFactory<CarrierOptionFactory> */
     use HasFactory;

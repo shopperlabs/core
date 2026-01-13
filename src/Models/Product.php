@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Shopper\Core\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute as CastAttribute;
+use Illuminate\Database\Eloquent\Casts\Attribute as LaravelAttribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,13 +15,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Arr;
-use Shopper\Contracts\Priceable;
 use Shopper\Core\Contracts\HasReviews;
+use Shopper\Core\Contracts\Priceable;
 use Shopper\Core\Database\Factories\ProductFactory;
 use Shopper\Core\Enum\Dimension\Length;
 use Shopper\Core\Enum\Dimension\Volume;
 use Shopper\Core\Enum\Dimension\Weight;
 use Shopper\Core\Enum\ProductType;
+use Shopper\Core\Models\Contracts\Product as ProductContract;
 use Shopper\Core\Models\Traits\HasDimensions;
 use Shopper\Core\Models\Traits\HasDiscounts;
 use Shopper\Core\Models\Traits\HasMedia;
@@ -29,47 +31,48 @@ use Shopper\Core\Models\Traits\HasSlug;
 use Shopper\Core\Models\Traits\HasStock;
 use Shopper\Core\Models\Traits\InteractsWithReviews;
 use Shopper\Core\Observers\ProductObserver;
+use Shopper\Core\Traits\HasModelContract;
 use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
 
 /**
  * @property-read int $id
  * @property-read string $name
  * @property-read string $slug
- * @property-read string|null $sku
- * @property-read string|null $barcode
- * @property-read ProductType|null $type
+ * @property-read ?string $sku
+ * @property-read ?string $barcode
+ * @property-read ?ProductType $type
  * @property-read bool $is_visible
  * @property-read bool $featured
  * @property-read Weight $weight_unit
- * @property-read float|null $weight_value
+ * @property-read ?float $weight_value
  * @property-read Length $height_unit
- * @property-read float|null $height_value
+ * @property-read ?float $height_value
  * @property-read Length $width_unit
- * @property-read float|null $width_value
+ * @property-read ?float $width_value
  * @property-read Length $depth_unit
- * @property-read float|null $depth_value
+ * @property-read ?float $depth_value
  * @property-read Volume $volume_unit
- * @property-read float|null $volume_value
- * @property-read int|null $security_stock
+ * @property-read ?float $volume_value
+ * @property-read ?int $security_stock
  * @property-read int $variants_stock
- * @property-read string|null $seo_title
- * @property-read string|null $seo_description
- * @property-read string|null $external_id
- * @property-read \Illuminate\Support\Carbon|null $published_at
+ * @property-read ?string $seo_title
+ * @property-read ?string $seo_description
+ * @property-read ?string $external_id
+ * @property-read ?CarbonInterface $published_at
  * @property-read array<string, mixed>|null $metadata
  * @property-read int $stock
  * @property-read Brand $brand
- * @property-read \Illuminate\Support\Collection<int, Channel> $channels
- * @property-read \Illuminate\Support\Collection<int, Category> $categories
- * @property-read \Illuminate\Support\Collection<int, Attribute> $options
- * @property-read \Illuminate\Support\Collection<int, Collection> $collections
- * @property-read \Illuminate\Support\Collection<int, ProductVariant> $variants
- * @property-read \Illuminate\Support\Collection<int, Product> $relatedProducts
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Contracts\Channel> $channels
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Contracts\Category> $categories
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Contracts\Attribute> $options
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Contracts\Collection> $collections
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Contracts\ProductVariant> $variants
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProductContract> $relatedProducts
  *
  * @implements Priceable<Product>
  */
 #[ObservedBy(ProductObserver::class)]
-class Product extends Model implements HasReviews, Priceable, SpatieHasMedia
+class Product extends Model implements HasReviews, Priceable, ProductContract, SpatieHasMedia
 {
     use HasDimensions;
     use HasDiscounts;
@@ -78,6 +81,7 @@ class Product extends Model implements HasReviews, Priceable, SpatieHasMedia
     use HasFactory;
 
     use HasMedia;
+    use HasModelContract;
     use HasPrices;
     use HasSlug;
     use HasStock;
@@ -85,23 +89,14 @@ class Product extends Model implements HasReviews, Priceable, SpatieHasMedia
 
     protected $guarded = [];
 
+    public static function configKey(): string
+    {
+        return 'product';
+    }
+
     public function getTable(): string
     {
         return shopper_table('products');
-    }
-
-    public function variantsStock(): CastAttribute
-    {
-        $stock = 0;
-
-        if ($this->variants->isNotEmpty()) {
-            /** @var ProductVariant $variant */
-            foreach ($this->variants as $variant) {
-                $stock += $variant->stock;
-            }
-        }
-
-        return CastAttribute::get(fn (): int => $stock);
     }
 
     public function canUseShipping(): bool
@@ -137,6 +132,11 @@ class Product extends Model implements HasReviews, Priceable, SpatieHasMedia
     public function isStandard(): bool
     {
         return $this->type === ProductType::Standard;
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->is_visible && $this->published_at && $this->published_at <= now();
     }
 
     /**
@@ -250,6 +250,20 @@ class Product extends Model implements HasReviews, Priceable, SpatieHasMedia
     protected static function newFactory(): ProductFactory
     {
         return ProductFactory::new();
+    }
+
+    protected function variantsStock(): LaravelAttribute
+    {
+        $stock = 0;
+
+        if ($this->variants->isNotEmpty()) {
+            /** @var ProductVariant $variant */
+            foreach ($this->variants as $variant) {
+                $stock += $variant->stock;
+            }
+        }
+
+        return LaravelAttribute::get(fn (): int => $stock);
     }
 
     protected function casts(): array

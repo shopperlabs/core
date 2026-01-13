@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Shopper\Core\Contracts\ShopperUser;
 use Shopper\Core\Database\Factories\GeolocationFactory;
+use Shopper\Core\Models\Contracts\Geolocation as GeolocationContract;
 
 /**
  * @property-read int $id
@@ -16,10 +18,10 @@ use Shopper\Core\Database\Factories\GeolocationFactory;
  * @property-read int $order_id
  * @property-read array<array-key, mixed>|null $ip_api
  * @property-read array<array-key, mixed>|null $extreme_ip_lookup
- * @property-read \Illuminate\Foundation\Auth\User|User $user
- * @property-read Order $order
+ * @property-read \Illuminate\Foundation\Auth\User|ShopperUser $user
+ * @property-read Contracts\Order $order
  */
-class Geolocation extends Model
+class Geolocation extends Model implements GeolocationContract
 {
     /** @use HasFactory<GeolocationFactory> */
     use HasFactory;
@@ -34,12 +36,12 @@ class Geolocation extends Model
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<ShopperUser, $this>
      */
     public function user(): BelongsTo
     {
         // @phpstan-ignore-next-line
-        return $this->belongsTo(config('auth.providers.users.model', User::class), 'user_id');
+        return $this->belongsTo(config('auth.providers.users.model'), 'user_id');
     }
 
     /**

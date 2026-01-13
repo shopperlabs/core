@@ -10,18 +10,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Shopper\Core\Database\Factories\InventoryHistoryFactory;
+use Shopper\Core\Models\Contracts\InventoryHistory as InventoryHistoryContract;
 
 /**
  * @property-read int $id
  * @property-read int $quantity
- * @property-read int|null $old_quantity
- * @property-read string|null $event
- * @property-read string|null $description
+ * @property-read ?int $old_quantity
+ * @property-read ?string $event
+ * @property-read ?string $description
  * @property-read int $user_id
  * @property-read int $inventory_id
  * @property-read string|int $adjustment
  */
-class InventoryHistory extends Model
+class InventoryHistory extends Model implements InventoryHistoryContract
 {
     /** @use HasFactory<InventoryHistoryFactory> */
     use HasFactory;
@@ -42,12 +43,12 @@ class InventoryHistory extends Model
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<\Shopper\Core\Contracts\ShopperUser, $this>
      */
     public function user(): BelongsTo
     {
         // @phpstan-ignore-next-line
-        return $this->belongsTo(config('auth.providers.users.model', User::class), 'user_id');
+        return $this->belongsTo(config('auth.providers.users.model'), 'user_id');
     }
 
     /**

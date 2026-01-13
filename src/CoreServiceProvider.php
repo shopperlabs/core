@@ -48,6 +48,23 @@ final class CoreServiceProvider extends PackageServiceProvider
     {
         $this->registerConfigFiles();
         $this->registerDatabase();
+        $this->registerModelBindings();
+    }
+
+    protected function registerModelBindings(): void
+    {
+        $models = [
+            'brand' => Models\Contracts\Brand::class,
+            'category' => Models\Contracts\Category::class,
+            'collection' => Models\Contracts\Collection::class,
+            'product' => Models\Contracts\Product::class,
+            'variant' => Models\Contracts\ProductVariant::class,
+            'channel' => Models\Contracts\Channel::class,
+        ];
+
+        foreach ($models as $configKey => $contract) {
+            $this->app->bind($contract, config("shopper.models.{$configKey}"));
+        }
     }
 
     protected function bootModelRelationName(): void

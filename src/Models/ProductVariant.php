@@ -5,51 +5,54 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Shopper\Contracts\Priceable;
+use Shopper\Core\Contracts\Priceable;
 use Shopper\Core\Database\Factories\ProductVariantFactory;
 use Shopper\Core\Enum\Dimension\Length;
 use Shopper\Core\Enum\Dimension\Volume;
 use Shopper\Core\Enum\Dimension\Weight;
+use Shopper\Core\Models\Contracts\ProductVariant as ProductVariantContract;
 use Shopper\Core\Models\Traits\HasDimensions;
 use Shopper\Core\Models\Traits\HasMedia;
 use Shopper\Core\Models\Traits\HasPrices;
 use Shopper\Core\Models\Traits\HasStock;
 use Shopper\Core\Observers\ProductVariantObserver;
+use Shopper\Core\Traits\HasModelContract;
 use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
 
 /**
  * @property-read int $id
  * @property-read string $name
- * @property-read string|null $sku
- * @property-read string|null $barcode
- * @property-read string|null $ean
- * @property-read string|null $upc
+ * @property-read ?string $sku
+ * @property-read ?string $barcode
+ * @property-read ?string $ean
+ * @property-read ?string $upc
  * @property-read Weight $weight_unit
- * @property-read float|null $weight_value
+ * @property-read ?float $weight_value
  * @property-read Length $height_unit
- * @property-read float|null $height_value
+ * @property-read ?float $height_value
  * @property-read Length $width_unit
- * @property-read float|null $width_value
+ * @property-read ?float $width_value
  * @property-read Length $depth_unit
- * @property-read float|null $depth_value
+ * @property-read ?float $depth_value
  * @property-read Volume $volume_unit
- * @property-read float|null $volume_value
+ * @property-read ?float $volume_value
  * @property-read bool $allow_backorder
  * @property-read int $position
  * @property-read int $product_id
  * @property-read array<array-key, mixed>|null $metadata
  * @property-read int $stock
- * @property-read Product $product
- * @property-read \Illuminate\Support\Collection<int, AttributeValue> $values
+ * @property-read Contracts\Product $product
+ * @property-read Collection<int, AttributeValue> $values
  *
  * @implements Priceable<ProductVariant>
  */
 #[ObservedBy(ProductVariantObserver::class)]
-class ProductVariant extends Model implements Priceable, SpatieHasMedia
+class ProductVariant extends Model implements Priceable, ProductVariantContract, SpatieHasMedia
 {
     use HasDimensions;
 
@@ -57,10 +60,16 @@ class ProductVariant extends Model implements Priceable, SpatieHasMedia
     use HasFactory;
 
     use HasMedia;
+    use HasModelContract;
     use HasPrices;
     use HasStock;
 
     protected $guarded = [];
+
+    public static function configKey(): string
+    {
+        return 'variant';
+    }
 
     public function getTable(): string
     {

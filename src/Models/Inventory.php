@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Shopper\Core\Database\Factories\InventoryFactory;
+use Shopper\Core\Models\Contracts\Inventory as InventoryContract;
 use Shopper\Core\Observers\InventoryObserver;
 
 /**
@@ -20,15 +21,15 @@ use Shopper\Core\Observers\InventoryObserver;
  * @property-read string $code
  * @property-read string $email
  * @property-read string $city
- * @property-read string|null $description
- * @property-read string|null $street_address
- * @property-read string|null $street_address_plus
+ * @property-read ?string $description
+ * @property-read ?string $street_address
+ * @property-read ?string $street_address_plus
  * @property-read string $postal_code
- * @property-read string|null $phone_number
+ * @property-read ?string $phone_number
  * @property-read bool $is_default
  */
 #[ObservedBy(InventoryObserver::class)]
-class Inventory extends Model
+class Inventory extends Model implements InventoryContract
 {
     /** @use HasFactory<InventoryFactory> */
     use HasFactory;

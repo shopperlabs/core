@@ -7,22 +7,24 @@ namespace Shopper\Core\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Shopper\Core\Contracts\ShopperUser;
 use Shopper\Core\Database\Factories\OrderRefundFactory;
 use Shopper\Core\Enum\OrderRefundStatus;
+use Shopper\Core\Models\Contracts\OrderRefund as OrderRefundContract;
 
 /**
  * @property-read int $id
- * @property-read string|null $refund_reason
- * @property-read int|null $refund_amount
+ * @property-read ?string $refund_reason
+ * @property-read ?int $refund_amount
  * @property-read OrderRefundStatus $status
- * @property-read string|null $notes
+ * @property-read ?string $notes
  * @property-read string $currency
  * @property-read int $order_id
- * @property-read int|null $user_id
- * @property-read Order $order
- * @property-read User|null $customer
+ * @property-read ?int $user_id
+ * @property-read Contracts\Order $order
+ * @property-read ?ShopperUser $customer
  */
-class OrderRefund extends Model
+class OrderRefund extends Model implements OrderRefundContract
 {
     /** @use HasFactory<OrderRefundFactory> */
     use HasFactory;
@@ -41,18 +43,29 @@ class OrderRefund extends Model
         parent::__construct($attributes);
     }
 
+    public function setDefaultOrderRefundStatus(): void
+    {
+        $this->setRawAttributes(
+            array_merge(
+                $this->attributes,
+                ['status' => OrderRefundStatus::Pending->value]
+            ),
+            true
+        );
+    }
+
     public function getTable(): string
     {
         return shopper_table('order_refunds');
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<ShopperUser, $this>
      */
     public function customer(): BelongsTo
     {
         // @phpstan-ignore-next-line
-        return $this->belongsTo(config('auth.providers.users.model', User::class), 'user_id');
+        return $this->belongsTo(config('auth.providers.users.model'), 'user_id');
     }
 
     /**
@@ -73,16 +86,5 @@ class OrderRefund extends Model
         return [
             'status' => OrderRefundStatus::class,
         ];
-    }
-
-    protected function setDefaultOrderRefundStatus(): void
-    {
-        $this->setRawAttributes(
-            array_merge(
-                $this->attributes,
-                ['status' => OrderRefundStatus::Pending->value]
-            ),
-            true
-        );
     }
 }

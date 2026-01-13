@@ -4,36 +4,51 @@ declare(strict_types=1);
 
 namespace Shopper\Core\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Shopper\Core\Database\Factories\CollectionFactory;
 use Shopper\Core\Enum\CollectionType;
+use Shopper\Core\Models\Contracts\Collection as CollectionContract;
 use Shopper\Core\Models\Traits\HasMedia;
 use Shopper\Core\Models\Traits\HasSlug;
+use Shopper\Core\Traits\HasModelContract;
 use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
 
 /**
  * @property-read int $id
- * @property-read CollectionType $type
  * @property-read string $name
  * @property-read string $slug
- * @property-read string|null $description
+ * @property-read CollectionType $type
+ * @property-read ?string $description
+ * @property-read ?string $match_conditions
+ * @property-read ?string $sort
+ * @property-read CarbonInterface $published_at
  * @property-read array<string, mixed>|null $metadata
- * @property-read \Illuminate\Support\Collection<int, CollectionRule> $rules
- * @property-read \Illuminate\Support\Collection<int, Product> $products
+ * @property-read ?string $seo_title
+ * @property-read ?string $seo_description
+ * @property-read EloquentCollection<int, CollectionRule> $rules
+ * @property-read EloquentCollection<int, Contracts\Product> $products
  */
-class Collection extends Model implements SpatieHasMedia
+class Collection extends Model implements CollectionContract, SpatieHasMedia
 {
     /** @use HasFactory<CollectionFactory> */
     use HasFactory;
 
     use HasMedia;
+    use HasModelContract;
     use HasSlug;
 
     protected $guarded = [];
+
+    public static function configKey(): string
+    {
+        return 'collection';
+    }
 
     public function getTable(): string
     {

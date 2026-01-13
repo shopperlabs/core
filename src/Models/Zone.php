@@ -6,33 +6,35 @@ namespace Shopper\Core\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Shopper\Core\Database\Factories\ZoneFactory;
+use Shopper\Core\Models\Contracts\Zone as ZoneContract;
 use Shopper\Core\Models\Traits\HasSlug;
 
 /**
  * @property-read int $id
  * @property-read string $name
  * @property-read string $slug
- * @property-read string|null $code
+ * @property-read ?string $code
  * @property-read bool $is_enabled
- * @property-read int|null $currency_id
+ * @property-read ?int $currency_id
  * @property-read array<array-key, mixed>|null $metadata
  * @property-read string $carriers_name
  * @property-read string $countries_name
  * @property-read string $payments_name
  * @property-read string $currency_code
  * @property-read Currency $currency
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Carrier> $carriers
- * @property-read \Illuminate\Database\Eloquent\Collection<int, CarrierOption> $shippingOptions
- * @property-read \Illuminate\Database\Eloquent\Collection<int, PaymentMethod> $paymentMethods
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Country> $countries
+ * @property-read Collection<int, Contracts\Carrier> $carriers
+ * @property-read Collection<int, Contracts\CarrierOption> $shippingOptions
+ * @property-read Collection<int, Contracts\PaymentMethod> $paymentMethods
+ * @property-read Collection<int, Contracts\Country> $countries
  */
-class Zone extends Model
+class Zone extends Model implements ZoneContract
 {
     /** @use HasFactory<ZoneFactory> */
     use HasFactory;

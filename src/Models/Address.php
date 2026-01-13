@@ -9,29 +9,33 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Shopper\Core\Contracts\ShopperUser;
 use Shopper\Core\Database\Factories\AddressFactory;
 use Shopper\Core\Enum\AddressType;
+use Shopper\Core\Models\Contracts\Address as AddressContract;
 use Shopper\Core\Observers\AddressObserver;
 
 /**
  * @property-read int $id
  * @property-read string $last_name
- * @property-read string|null $first_name
+ * @property-read ?string $first_name
  * @property-read string $full_name
- * @property-read string|null $company_name
+ * @property-read ?string $company_name
  * @property-read string $street_address
- * @property-read string|null $street_address_plus
+ * @property-read ?string $street_address_plus
  * @property-read string $postal_code
  * @property-read string $city
  * @property-read AddressType $type
- * @property-read string|null $phone_number
+ * @property-read ?string $phone_number
  * @property-read bool $shipping_default
  * @property-read bool $billing_default
  * @property-read int $user_id
  * @property-read int $country_id
+ * @property-read Country $country
+ * @property-read ShopperUser $user
  */
 #[ObservedBy(AddressObserver::class)]
-class Address extends Model
+class Address extends Model implements AddressContract
 {
     /** @use HasFactory<AddressFactory> */
     use HasFactory;
@@ -54,12 +58,12 @@ class Address extends Model
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<ShopperUser, $this>
      */
     public function user(): BelongsTo
     {
         // @phpstan-ignore-next-line
-        return $this->belongsTo(config('auth.providers.users.model', User::class), 'user_id');
+        return $this->belongsTo(config('auth.providers.users.model'), 'user_id');
     }
 
     /**

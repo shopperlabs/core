@@ -9,20 +9,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Shopper\Core\Database\Factories\ReviewFactory;
+use Shopper\Core\Models\Contracts\Review as ReviewContract;
 
 /**
  * @property-read int $id
  * @property-read bool $approved
  * @property-read bool $is_recommended
- * @property-read string|null $title
- * @property-read string|null $content
+ * @property-read ?string $title
+ * @property-read ?string $content
  * @property-read int $reviewrateable_id
  * @property-read string $reviewrateable_type
  * @property-read int $author_id
  * @property-read string $author_type
  * @property-read int $rating
  */
-class Review extends Model
+class Review extends Model implements ReviewContract
 {
     /** @use HasFactory<ReviewFactory> */
     use HasFactory;

@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Shopper\Core\Contracts\ShopperUser;
 use Shopper\Core\Database\Factories\OrderAddressFactory;
 use Shopper\Core\Models\Contracts\OrderAddress as OrderAddressContract;
+use Shopper\Core\Models\Contracts\ShopperUser;
 
 /**
  * @property-read int $id
@@ -25,7 +25,7 @@ use Shopper\Core\Models\Contracts\OrderAddress as OrderAddressContract;
  * @property-read ?string $company
  * @property-read ?string $phone
  * @property-read ?string $country_name
- * @property-read ShopperUser $customer
+ * @property-read Model&ShopperUser $customer
  */
 class OrderAddress extends Model implements OrderAddressContract
 {
@@ -48,7 +48,7 @@ class OrderAddress extends Model implements OrderAddressContract
     }
 
     /**
-     * @return BelongsTo<ShopperUser, $this>
+     * @return BelongsTo<Model&ShopperUser, $this>
      */
     public function customer(): BelongsTo
     {

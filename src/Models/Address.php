@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Shopper\Core\Contracts\ShopperUser;
 use Shopper\Core\Database\Factories\AddressFactory;
 use Shopper\Core\Enum\AddressType;
 use Shopper\Core\Models\Contracts\Address as AddressContract;
+use Shopper\Core\Models\Contracts\ShopperUser;
 use Shopper\Core\Observers\AddressObserver;
+use Shopper\Core\Traits\HasModelContract;
 
 /**
  * @property-read int $id
@@ -32,7 +33,7 @@ use Shopper\Core\Observers\AddressObserver;
  * @property-read int $user_id
  * @property-read int $country_id
  * @property-read Country $country
- * @property-read ShopperUser $user
+ * @property-read Model&ShopperUser $user
  */
 #[ObservedBy(AddressObserver::class)]
 class Address extends Model implements AddressContract
@@ -40,7 +41,14 @@ class Address extends Model implements AddressContract
     /** @use HasFactory<AddressFactory> */
     use HasFactory;
 
+    use HasModelContract;
+
     protected $guarded = [];
+
+    public static function configKey(): string
+    {
+        return 'address';
+    }
 
     public function getTable(): string
     {
@@ -58,7 +66,7 @@ class Address extends Model implements AddressContract
     }
 
     /**
-     * @return BelongsTo<ShopperUser, $this>
+     * @return BelongsTo<Model&ShopperUser, $this>
      */
     public function user(): BelongsTo
     {

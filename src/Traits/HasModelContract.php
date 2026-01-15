@@ -56,16 +56,6 @@ trait HasModelContract
     }
 
     /**
-     * @return Builder<static>
-     *
-     * @deprecated Use standard Eloquent methods instead (e.g., Model::query())
-     */
-    public static function resolvedQuery(): Builder
-    {
-        return static::configuredClass()::query();
-    }
-
-    /**
      * @param  class-string  $observer
      */
     public static function observeUsingConfiguredClass(string $observer): void
@@ -84,8 +74,6 @@ trait HasModelContract
         $shopperBaseClass = static::getShopperBaseClass();
         $parentClass = get_parent_class($concreteClass);
 
-        // If the configured class directly extends a Shopper base model
-        // OR if we're already an instance of the configured class, use parent behavior
         if ($parentClass === $shopperBaseClass || $this instanceof $concreteClass) {
             /** @var Builder<static> */
             return parent::newModelQuery();
@@ -134,6 +122,7 @@ trait HasModelContract
     {
         $modelClass = static::configuredClass();
 
+        /** @var static|null */
         return $modelClass::query()
             ->where($field ?? $this->getRouteKeyName(), $value)
             ->first();
@@ -143,9 +132,10 @@ trait HasModelContract
     {
         $modelClass = static::configuredClass();
 
-        return $modelClass::query()
+        /** @var static|null */
+        return $modelClass::query() // @phpstan-ignore-line
             ->where($field ?? $this->getRouteKeyName(), $value)
-            ->withTrashed() // @phpstan-ignore-line
+            ->withTrashed()
             ->first();
     }
 

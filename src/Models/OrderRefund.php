@@ -7,10 +7,10 @@ namespace Shopper\Core\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Shopper\Core\Contracts\ShopperUser;
 use Shopper\Core\Database\Factories\OrderRefundFactory;
 use Shopper\Core\Enum\OrderRefundStatus;
 use Shopper\Core\Models\Contracts\OrderRefund as OrderRefundContract;
+use Shopper\Core\Models\Contracts\ShopperUser;
 
 /**
  * @property-read int $id
@@ -21,8 +21,8 @@ use Shopper\Core\Models\Contracts\OrderRefund as OrderRefundContract;
  * @property-read string $currency
  * @property-read int $order_id
  * @property-read ?int $user_id
- * @property-read Contracts\Order $order
- * @property-read ?ShopperUser $customer
+ * @property-read Order $order
+ * @property-read ?Model $customer
  */
 class OrderRefund extends Model implements OrderRefundContract
 {
@@ -60,7 +60,7 @@ class OrderRefund extends Model implements OrderRefundContract
     }
 
     /**
-     * @return BelongsTo<ShopperUser, $this>
+     * @return BelongsTo<Model&ShopperUser, $this>
      */
     public function customer(): BelongsTo
     {

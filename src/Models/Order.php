@@ -46,6 +46,7 @@ use Shopper\Core\Traits\HasModelContract;
  * @property-read ?static $parent
  * @property-read Model&ShopperUser $customer
  * @property-read Collection<int, OrderItem> $items
+ * @property-read Collection<int, OrderShipping> $shippings
  * @property-read Collection<int, Order> $children
  */
 class Order extends Model implements OrderContract
@@ -91,7 +92,7 @@ class Order extends Model implements OrderContract
         return shopper_table('orders');
     }
 
-    public function total(): int
+    public function total(): float|int
     {
         return $this->items->sum('total');
     }
@@ -104,6 +105,11 @@ class Order extends Model implements OrderContract
     public function isNotCancelled(): bool
     {
         return $this->status !== OrderStatus::Cancelled;
+    }
+
+    public function isNew(): bool
+    {
+        return $this->status === OrderStatus::New;
     }
 
     public function isPending(): bool
@@ -213,6 +219,14 @@ class Order extends Model implements OrderContract
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * @return HasMany<OrderShipping, $this>
+     */
+    public function shippings(): HasMany
+    {
+        return $this->hasMany(OrderShipping::class);
     }
 
     /**

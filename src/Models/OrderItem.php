@@ -10,19 +10,23 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Shopper\Core\Database\Factories\OrderItemFactory;
+use Shopper\Core\Enum\FulfillmentStatus;
 use Shopper\Core\Models\Contracts\OrderItem as OrderItemContract;
 
 /**
  * @property-read int $id
  * @property-read string $name
  * @property-read int $quantity
- * @property-read int $unit_price_amount
- * @property-read int $total
+ * @property-read float|int|null $unit_price_amount
+ * @property-read float|int $total
  * @property-read string $sku
  * @property-read int $product_id
  * @property-read string $product_type
  * @property-read int $order_id
+ * @property-read ?int $order_shipping_id
+ * @property-read ?FulfillmentStatus $fulfillment_status
  * @property-read Contracts\Order $order
+ * @property-read ?OrderShipping $shipment
  */
 class OrderItem extends Model implements OrderItemContract
 {
@@ -53,15 +57,38 @@ class OrderItem extends Model implements OrderItemContract
         return $this->belongsTo(config('shopper.models.order'), 'order_id');
     }
 
+    /**
+     * @return BelongsTo<OrderShipping, $this>
+     */
+    public function shipment(): BelongsTo
+    {
+        return $this->belongsTo(OrderShipping::class, 'order_shipping_id');
+    }
+
     protected static function newFactory(): OrderItemFactory
     {
         return OrderItemFactory::new();
     }
 
+    protected function casts(): array
+    {
+        return [
+            'fulfillment_status' => FulfillmentStatus::class,
+        ];
+    }
+
+    protected function unitPriceAmount(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?int $value): float|int|null => $value ? $value / 100 : null,
+            set: fn (int|float|null $value): ?int => $value ? (int) round($value * 100) : null,
+        );
+    }
+
     protected function total(): Attribute
     {
         return Attribute::make(
-            get: fn (): int => $this->unit_price_amount * $this->quantity
+            get: fn (): int|float => $this->unit_price_amount * $this->quantity
         );
     }
 }

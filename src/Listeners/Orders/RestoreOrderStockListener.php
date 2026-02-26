@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Shopper\Core\Listeners\Orders;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Shopper\Core\Events\Orders\OrderCancelled;
+use Shopper\Core\Events\Orders\OrderCancel;
 use Shopper\Core\Models\Contracts\Stockable;
 
 final class RestoreOrderStockListener implements ShouldQueue
 {
-    public function handle(OrderCancelled $event): void
+    public function handle(OrderCancel $event): void
     {
         $order = $event->order->load('items.product');
 
@@ -33,7 +33,6 @@ final class RestoreOrderStockListener implements ShouldQueue
                         'event' => __('shopper-core::status.stock.cancelled'),
                         'old_quantity' => $item->product->stockInventory($reservation->inventory_id),
                         'reference' => $order,
-                        'user_id' => $order->customer_id,
                     ],
                 );
             }

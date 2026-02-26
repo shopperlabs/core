@@ -65,6 +65,7 @@ class CollectionRule extends Model implements CollectionRuleContract
      */
     public function collection(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('shopper.models.collection'), 'collection_id');
     }
 

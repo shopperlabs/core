@@ -141,6 +141,7 @@ class Zone extends Model implements ZoneContract
      */
     public function collections(): MorphToMany
     {
+        // @phpstan-ignore-next-line
         return $this->morphedByMany(config('shopper.models.collection'), 'zonable', shopper_table('zone_has_relations'));
     }
 

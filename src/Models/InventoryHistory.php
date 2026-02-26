@@ -57,6 +57,7 @@ class InventoryHistory extends Model implements InventoryHistoryContract
      */
     public function user(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('auth.providers.users.model'), 'user_id');
     }
 

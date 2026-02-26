@@ -72,6 +72,7 @@ class Channel extends Model implements ChannelContract
      */
     public function products(): MorphToMany
     {
+        // @phpstan-ignore-next-line
         return $this->morphToMany(
             config('shopper.models.product'),
             'productable',

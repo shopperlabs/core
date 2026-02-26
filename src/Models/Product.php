@@ -192,6 +192,7 @@ class Product extends Model implements HasReviews, Priceable, ProductContract, S
      */
     public function variants(): HasMany
     {
+        // @phpstan-ignore-next-line
         return $this->hasMany(config('shopper.models.variant'), 'product_id');
     }
 
@@ -200,6 +201,7 @@ class Product extends Model implements HasReviews, Priceable, ProductContract, S
      */
     public function channels(): MorphToMany
     {
+        // @phpstan-ignore-next-line
         return $this->morphedByMany(config('shopper.models.channel'), 'productable', shopper_table('product_has_relations'));
     }
 
@@ -208,6 +210,7 @@ class Product extends Model implements HasReviews, Priceable, ProductContract, S
      */
     public function relatedProducts(): MorphToMany
     {
+        // @phpstan-ignore-next-line
         return $this->morphedByMany(config('shopper.models.product'), 'productable', shopper_table('product_has_relations'));
     }
 
@@ -216,6 +219,7 @@ class Product extends Model implements HasReviews, Priceable, ProductContract, S
      */
     public function categories(): MorphToMany
     {
+        // @phpstan-ignore-next-line
         return $this->morphedByMany(config('shopper.models.category'), 'productable', shopper_table('product_has_relations'));
     }
 
@@ -224,6 +228,7 @@ class Product extends Model implements HasReviews, Priceable, ProductContract, S
      */
     public function collections(): MorphToMany
     {
+        // @phpstan-ignore-next-line
         return $this->morphedByMany(config('shopper.models.collection'), 'productable', shopper_table('product_has_relations'));
     }
 
@@ -240,6 +245,7 @@ class Product extends Model implements HasReviews, Priceable, ProductContract, S
      */
     public function supplier(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('shopper.models.supplier'), 'supplier_id');
     }
 
@@ -248,6 +254,7 @@ class Product extends Model implements HasReviews, Priceable, ProductContract, S
      */
     public function brand(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('shopper.models.brand'), 'brand_id');
     }
 

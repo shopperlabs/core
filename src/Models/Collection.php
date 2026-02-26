@@ -140,6 +140,7 @@ class Collection extends Model implements CollectionContract, SpatieHasMedia
      */
     public function products(): MorphToMany
     {
+        // @phpstan-ignore-next-line
         return $this->morphToMany(config('shopper.models.product'), 'productable', shopper_table('product_has_relations'));
     }
 

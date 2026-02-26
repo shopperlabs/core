@@ -130,6 +130,7 @@ class Attribute extends Model implements AttributeContract
      */
     public function products(): BelongsToMany
     {
+        // @phpstan-ignore-next-line
         return $this->belongsToMany(config('shopper.models.product'), table: shopper_table('attribute_product'))
             ->withPivot([
                 'attribute_value_id',

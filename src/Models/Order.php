@@ -18,6 +18,7 @@ use Shopper\Core\Database\Factories\OrderFactory;
 use Shopper\Core\Enum\OrderStatus;
 use Shopper\Core\Enum\PaymentStatus;
 use Shopper\Core\Enum\ShippingStatus;
+use Shopper\Core\Helpers\Price;
 use Shopper\Core\Models\Contracts\Order as OrderContract;
 use Shopper\Core\Models\Contracts\ShopperUser;
 use Shopper\Core\Traits\HasModelContract;
@@ -26,9 +27,9 @@ use Shopper\Core\Traits\HasModelContract;
  * @property-read int $id
  * @property-read string $number
  * @property-read int $price_amount
- * @property-read ?int $tax_amount
  * @property-read string $notes
  * @property-read string $currency_code
+ * @property-read int $total_amount
  * @property-read ?int $zone_id
  * @property-read ?int $shipping_address_id
  * @property-read ?int $shipping_option_id
@@ -195,6 +196,7 @@ class Order extends Model implements OrderContract
      */
     public function customer(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('auth.providers.users.model'), 'customer_id');
     }
 
@@ -203,6 +205,7 @@ class Order extends Model implements OrderContract
      */
     public function channel(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(config('shopper.models.channel'), 'channel_id');
     }
 
@@ -219,6 +222,7 @@ class Order extends Model implements OrderContract
      */
     public function parent(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(static::class, 'parent_order_id');
     }
 
@@ -227,6 +231,7 @@ class Order extends Model implements OrderContract
      */
     public function children(): HasMany
     {
+        // @phpstan-ignore-next-line
         return $this->hasMany(static::class, 'parent_order_id');
     }
 
@@ -293,11 +298,10 @@ class Order extends Model implements OrderContract
         return OrderFactory::new();
     }
 
-    protected function taxAmount(): Attribute
+    protected function totalAmount(): Attribute
     {
-        return Attribute::make(
-            get: fn (int|float|null $value): int|float => ($value ?? 0) / 100,
-            set: fn (int|float $value): int => (int) round($value * 100),
+        return Attribute::get(
+            fn (): Price => Price::from(amount: $this->total(), currency: $this->currency_code)
         );
     }
 

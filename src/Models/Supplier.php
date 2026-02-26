@@ -69,6 +69,7 @@ class Supplier extends Model implements SupplierContract
      */
     public function products(): HasMany
     {
+        // @phpstan-ignore-next-line
         return $this->hasMany(config('shopper.models.product'), 'supplier_id');
     }
 

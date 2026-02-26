@@ -33,7 +33,6 @@ final readonly class ReserveOrderItemStockListener implements ShouldQueue
                     'event' => __('shopper-core::status.stock.reserved'),
                     'old_quantity' => $item->product->stockInventory($allocation->inventoryId),
                     'reference' => $item->order,
-                    'user_id' => $item->order->customer_id,
                 ],
             );
         }

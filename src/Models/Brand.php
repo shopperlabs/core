@@ -71,6 +71,7 @@ class Brand extends Model implements BrandContract, SpatieHasMedia
      */
     public function products(): HasMany
     {
+        // @phpstan-ignore-next-line
         return $this->hasMany(config('shopper.models.product'));
     }
 

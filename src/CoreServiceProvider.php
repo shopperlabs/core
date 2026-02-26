@@ -10,7 +10,6 @@ use Shopper\Core\Console\InstallCommand;
 use Shopper\Core\Console\SyncCollectionsCommand;
 use Shopper\Core\Contracts\InventoryResolver;
 use Shopper\Core\Contracts\StockAllocator;
-use Shopper\Core\Contracts\TaxCalculationProvider;
 use Shopper\Core\Models\Address;
 use Shopper\Core\Models\Attribute;
 use Shopper\Core\Models\Category;
@@ -31,8 +30,6 @@ use Shopper\Core\Observers\ProductObserver;
 use Shopper\Core\Observers\ProductVariantObserver;
 use Shopper\Core\Stock\DefaultInventoryResolver;
 use Shopper\Core\Stock\PriorityStockAllocator;
-use Shopper\Core\Taxes\SystemTaxProvider;
-use Shopper\Core\Taxes\TaxCalculator;
 use Shopper\Core\Traits\HasRegisterConfigAndMigrationFiles;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -74,13 +71,10 @@ final class CoreServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
-        $this->app->register(EventServiceProvider::class);
-
         $this->registerConfigFiles();
         $this->registerDatabase();
         $this->registerModelBindings();
         $this->registerStockAllocator();
-        $this->registerTaxCalculator();
     }
 
     protected function registerObservers(): void
@@ -110,8 +104,6 @@ final class CoreServiceProvider extends PackageServiceProvider
             'order' => Models\Contracts\Order::class,
             'inventory' => Models\Contracts\Inventory::class,
             'supplier' => Models\Contracts\Supplier::class,
-            'tax_zone' => Models\Contracts\TaxZone::class,
-            'tax_rate' => Models\Contracts\TaxRate::class,
         ];
 
         foreach ($models as $configKey => $contract) {
@@ -123,12 +115,6 @@ final class CoreServiceProvider extends PackageServiceProvider
     {
         $this->app->bind(InventoryResolver::class, DefaultInventoryResolver::class);
         $this->app->bind(StockAllocator::class, PriorityStockAllocator::class);
-    }
-
-    protected function registerTaxCalculator(): void
-    {
-        $this->app->singleton(TaxCalculationProvider::class, SystemTaxProvider::class);
-        $this->app->singleton(TaxCalculator::class);
     }
 
     protected function bootModelRelationName(): void
@@ -144,8 +130,6 @@ final class CoreServiceProvider extends PackageServiceProvider
             'order' => config('shopper.models.order'),
             'inventory' => config('shopper.models.inventory'),
             'supplier' => config('shopper.models.supplier'),
-            'tax_zone' => config('shopper.models.tax_zone'),
-            'tax_rate' => config('shopper.models.tax_rate'),
             'product_tag' => Models\ProductTag::class,
         ]);
     }

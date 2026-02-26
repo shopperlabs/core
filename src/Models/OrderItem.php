@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Shopper\Core\Database\Factories\OrderItemFactory;
 use Shopper\Core\Enum\FulfillmentStatus;
@@ -23,6 +24,7 @@ use Shopper\Core\Models\Contracts\OrderItem as OrderItemContract;
  * @property-read string $sku
  * @property-read int $product_id
  * @property-read string $product_type
+ * @property-read int $tax_amount
  * @property-read int $order_id
  * @property-read ?int $order_shipping_id
  * @property-read ?FulfillmentStatus $fulfillment_status
@@ -30,6 +32,7 @@ use Shopper\Core\Models\Contracts\OrderItem as OrderItemContract;
  * @property-read CarbonInterface $updated_at
  * @property-read Contracts\Order $order
  * @property-read ?OrderShipping $shipment
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, OrderTaxLine> $taxLines
  * @property-read Model $product
  */
 class OrderItem extends Model implements OrderItemContract
@@ -74,8 +77,15 @@ class OrderItem extends Model implements OrderItemContract
      */
     public function order(): BelongsTo
     {
-        // @phpstan-ignore-next-line
         return $this->belongsTo(config('shopper.models.order'), 'order_id');
+    }
+
+    /**
+     * @return MorphMany<OrderTaxLine, $this>
+     */
+    public function taxLines(): MorphMany
+    {
+        return $this->morphMany(OrderTaxLine::class, 'taxable');
     }
 
     /**
@@ -99,6 +109,14 @@ class OrderItem extends Model implements OrderItemContract
     }
 
     protected function unitPriceAmount(): Attribute
+    {
+        return Attribute::make(
+            get: fn (float|int $value): float|int => $value / 100,
+            set: fn (float|int $value): int => (int) round($value * 100),
+        );
+    }
+
+    protected function taxAmount(): Attribute
     {
         return Attribute::make(
             get: fn (float|int $value): float|int => $value / 100,

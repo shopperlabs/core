@@ -11,10 +11,10 @@ use Shopper\Core\Taxes\OrderItemTaxAdapter;
 use Shopper\Core\Taxes\TaxCalculationContext;
 use Shopper\Core\Taxes\TaxCalculator;
 
-final class CreateOrderTaxLinesAction
+final readonly class CreateOrderTaxLinesAction
 {
     public function __construct(
-        private readonly TaxCalculator $calculator,
+        private TaxCalculator $calculator,
     ) {}
 
     public function execute(Order $order): void
@@ -49,11 +49,11 @@ final class CreateOrderTaxLinesAction
                 $itemTaxTotal += $taxLine->amount;
             }
 
-            $item->updateQuietly(['tax_amount' => $itemTaxTotal]);
+            $item->updateQuietly(['tax_amount' => $itemTaxTotal / 100]);
             $orderTaxTotal += $itemTaxTotal;
         }
 
-        $order->updateQuietly(['tax_amount' => $orderTaxTotal]);
+        $order->updateQuietly(['tax_amount' => $orderTaxTotal / 100]);
     }
 
     private function resolveCountryCode(Order $order): ?string

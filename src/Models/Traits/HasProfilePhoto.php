@@ -7,6 +7,9 @@ namespace Shopper\Core\Models\Traits;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @deprecated use Shopper\Traits\HasProfilePhoto
+ */
 trait HasProfilePhoto
 {
     protected function picture(): Attribute

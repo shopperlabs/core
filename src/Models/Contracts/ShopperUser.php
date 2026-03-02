@@ -29,6 +29,8 @@ use Shopper\Core\Models\Order;
  * @property-read ?CarbonInterface $email_verified_at
  * @property-read ?CarbonInterface $birth_date
  * @property-read ?CarbonInterface $last_login_at
+ *
+ * @deprecated use Shopper\Models\Contracts\ShopperUser
  */
 interface ShopperUser extends Authenticatable
 {

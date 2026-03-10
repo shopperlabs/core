@@ -12,17 +12,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Shopper\Core\Database\Factories\CarrierFactory;
 use Shopper\Core\Models\Contracts\Carrier as CarrierContract;
-use Shopper\Core\Models\Traits\HasMedia;
 use Shopper\Core\Models\Traits\HasSlug;
 use Shopper\Core\Models\Traits\HasZones;
-use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
 
 /**
  * @property-read int $id
  * @property-read string $name
  * @property-read bool $is_enabled
  * @property-read ?string $slug
- * @property-read ?string $driver
+ * @property-read string $driver
  * @property-read ?string $link_url
  * @property-read ?string $description
  * @property-read ?int $shipping_amount
@@ -31,12 +29,11 @@ use Spatie\MediaLibrary\HasMedia as SpatieHasMedia;
  * @property-read CarbonInterface $updated_at
  * @property-read Collection<int, CarrierOption> $options
  */
-class Carrier extends Model implements CarrierContract, SpatieHasMedia
+class Carrier extends Model implements CarrierContract
 {
     /** @use HasFactory<CarrierFactory> */
     use HasFactory;
 
-    use HasMedia;
     use HasSlug;
     use HasZones;
 
@@ -64,15 +61,16 @@ class Carrier extends Model implements CarrierContract, SpatieHasMedia
         return $this->hasMany(CarrierOption::class);
     }
 
-    public function logoUrl(): ?string
+    public function logo(): ?string
     {
-        $media = $this->getFirstMediaUrl(config('shopper.media.storage.thumbnail_collection'));
-
-        if ($media && $media !== shopper_fallback_url()) {
-            return $media;
+        if (! app()->bound('shopper.carrier.logo')) {
+            return null;
         }
 
-        return null;
+        /** @var callable(static): ?string $resolver */
+        $resolver = app('shopper.carrier.logo');
+
+        return $resolver($this);
     }
 
     protected static function newFactory(): CarrierFactory

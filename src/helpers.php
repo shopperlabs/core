@@ -84,11 +84,13 @@ if (! function_exists('shopper_currency')) {
 }
 
 if (! function_exists('shopper_money_format')) {
-    function shopper_money_format(int|float $amount, ?string $currency = null): string
+    function shopper_money_format(int $amount, ?string $currency = null): string
     {
+        $currency = $currency ?? shopper_currency();
+
         return (string) Number::currency(
-            number: $amount,
-            in: $currency ?? shopper_currency(),
+            number: is_no_division_currency($currency) ? $amount : $amount / 100,
+            in: $currency,
             locale: app()->getLocale()
         );
     }
@@ -115,29 +117,23 @@ if (! function_exists('useTryCatch')) {
     }
 }
 
+if (! function_exists('zero_decimal_currencies')) {
+    /**
+     * @return array<int, string>
+     */
+    function zero_decimal_currencies(): array
+    {
+        return [
+            'BIF', 'CLP', 'DJF', 'GNF', 'HTG', 'JPY', 'KMF', 'KRW',
+            'MGA', 'PYG', 'RWF', 'VND', 'VUV', 'XAF', 'XAG', 'XAU',
+            'XDR', 'XOF', 'XPF',
+        ];
+    }
+}
+
 if (! function_exists('is_no_division_currency')) {
     function is_no_division_currency(string $currency): bool
     {
-        return in_array($currency, [
-            'BIF',
-            'CLP',
-            'DJF',
-            'GNF',
-            'HTG',
-            'JPY',
-            'KMF',
-            'KRW',
-            'MGA',
-            'PYG',
-            'RWF',
-            'VND',
-            'VUV',
-            'XAF',
-            'XAG',
-            'XAU',
-            'XDR',
-            'XOF',
-            'XPF',
-        ]);
+        return in_array($currency, zero_decimal_currencies());
     }
 }

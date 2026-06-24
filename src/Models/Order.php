@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,16 +19,19 @@ use Shopper\Core\Enum\OrderStatus;
 use Shopper\Core\Enum\PaymentStatus;
 use Shopper\Core\Enum\ShippingStatus;
 use Shopper\Core\Models\Contracts\Order as OrderContract;
-use Shopper\Core\Models\Contracts\ShopperUser;
+use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Traits\HasModelContract;
 
 /**
  * @property-read int $id
+ * @property-read ?string $public_id
  * @property-read string $number
  * @property-read int $price_amount
  * @property-read ?int $tax_amount
+ * @property-read ?int $shipping_amount
  * @property-read string $notes
  * @property-read string $currency_code
+ * @property-read ?string $email
  * @property-read ?int $zone_id
  * @property-read ?int $shipping_address_id
  * @property-read ?int $shipping_option_id
@@ -48,12 +52,15 @@ use Shopper\Core\Traits\HasModelContract;
  * @property-read ?CarrierOption $shippingOption
  * @property-read ?OrderAddress $shippingAddress
  * @property-read ?OrderAddress $billingAddress
+ * @property-read ?OrderRefund $refund
+ * @property-read ?Discount $discount
  * @property-read ?PaymentMethod $paymentMethod
  * @property-read ?Zone $zone
  * @property-read ?Channel $channel
  * @property-read ?static $parent
- * @property-read Model&ShopperUser $customer
+ * @property-read Model $customer
  * @property-read Collection<int, OrderItem> $items
+ * @property-read Collection<int, OrderPromotion> $promotions
  * @property-read Collection<int, OrderShipping> $shippings
  * @property-read Collection<int, Order> $children
  */
@@ -63,6 +70,7 @@ class Order extends Model implements OrderContract
     use HasFactory;
 
     use HasModelContract;
+    use HasPublicId;
     use SoftDeletes;
 
     protected $guarded = [];
@@ -195,7 +203,7 @@ class Order extends Model implements OrderContract
     }
 
     /**
-     * @return BelongsTo<Model&ShopperUser, $this>
+     * @return BelongsTo<Model, $this>
      */
     public function customer(): BelongsTo
     {
@@ -251,6 +259,22 @@ class Order extends Model implements OrderContract
     }
 
     /**
+     * @return BelongsTo<Discount, $this>
+     */
+    public function discount(): BelongsTo
+    {
+        return $this->belongsTo(Discount::class, 'discount_id');
+    }
+
+    /**
+     * @return HasMany<OrderPromotion, $this>
+     */
+    public function promotions(): HasMany
+    {
+        return $this->hasMany(OrderPromotion::class, 'order_id');
+    }
+
+    /**
      * @return HasMany<OrderItem, $this>
      */
     public function items(): HasMany
@@ -274,27 +298,29 @@ class Order extends Model implements OrderContract
         return $this->belongsTo(CarrierOption::class, 'shipping_option_id');
     }
 
-    /**
-     * @param  Builder<Order>  $query
-     * @return Builder<Order>
-     */
-    public function scopeArchived(Builder $query): Builder
+    protected static function newFactory(): OrderFactory
     {
-        return $query->where('status', OrderStatus::Archived);
+        return OrderFactory::new();
     }
 
     /**
      * @param  Builder<Order>  $query
      * @return Builder<Order>
      */
-    public function scopeNotArchived(Builder $query): Builder
+    #[Scope]
+    protected function notArchived(Builder $query): Builder
     {
         return $query->where('status', '!=', OrderStatus::Archived);
     }
 
-    protected static function newFactory(): OrderFactory
+    /**
+     * @param  Builder<Order>  $query
+     * @return Builder<Order>
+     */
+    #[Scope]
+    protected function archived(Builder $query): Builder
     {
-        return OrderFactory::new();
+        return $query->where('status', OrderStatus::Archived);
     }
 
     protected function casts(): array

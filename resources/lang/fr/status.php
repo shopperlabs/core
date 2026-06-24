@@ -63,10 +63,20 @@ return [
 
     'discount' => [
         'draft' => 'Brouillon',
-        'scheduled' => 'Programmé',
-        'active' => 'Actif',
-        'disabled' => 'Désactivé',
-        'expired' => 'Expiré',
+        'scheduled' => 'Programmée',
+        'active' => 'Active',
+        'disabled' => 'Désactivée',
+        'expired' => 'Expirée',
         'limit_reached' => 'Limite atteinte',
+        'inapplicable' => 'Inapplicable',
+    ],
+
+    'campaign' => [
+        'draft' => 'Brouillon',
+        'scheduled' => 'Programmée',
+        'active' => 'Active',
+        'disabled' => 'Désactivée',
+        'expired' => 'Expirée',
+        'budget_exhausted' => 'Budget épuisé',
     ],
 ];

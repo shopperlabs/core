@@ -17,6 +17,7 @@ use Shopper\Core\Traits\HasEnumStaticMethods;
  * @method static string Disabled()
  * @method static string Expired()
  * @method static string LimitReached()
+ * @method static string Inapplicable()
  */
 enum DiscountStatus: string implements HasColor, HasIcon, HasLabel
 {
@@ -35,6 +36,8 @@ enum DiscountStatus: string implements HasColor, HasIcon, HasLabel
 
     case LimitReached = 'limit_reached';
 
+    case Inapplicable = 'inapplicable';
+
     public function getColor(): string
     {
         return match ($this) {
@@ -42,6 +45,7 @@ enum DiscountStatus: string implements HasColor, HasIcon, HasLabel
             self::Scheduled => 'info',
             self::Active => 'success',
             self::Expired, self::LimitReached => 'warning',
+            self::Inapplicable => 'danger',
         };
     }
 
@@ -54,6 +58,7 @@ enum DiscountStatus: string implements HasColor, HasIcon, HasLabel
             self::Disabled => 'untitledui-eye-off',
             self::Expired => 'untitledui-hourglass-03',
             self::LimitReached => 'untitledui-bar-chart-square-up',
+            self::Inapplicable => 'untitledui-alert-triangle',
         };
     }
 
@@ -66,6 +71,7 @@ enum DiscountStatus: string implements HasColor, HasIcon, HasLabel
             self::Disabled => __('shopper-core::status.discount.disabled'),
             self::Expired => __('shopper-core::status.discount.expired'),
             self::LimitReached => __('shopper-core::status.discount.limit_reached'),
+            self::Inapplicable => __('shopper-core::status.discount.inapplicable'),
         };
     }
 }

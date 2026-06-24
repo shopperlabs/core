@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,12 +17,14 @@ use Shopper\Core\Database\Factories\CollectionFactory;
 use Shopper\Core\Enum\CollectionType;
 use Shopper\Core\Models\Contracts\Collection as CollectionContract;
 use Shopper\Core\Models\Traits\HasMediaCollections;
+use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Models\Traits\HasSlug;
 use Shopper\Core\Queries\CollectionProductsQuery;
 use Shopper\Core\Traits\HasModelContract;
 
 /**
  * @property-read int $id
+ * @property-read ?string $public_id
  * @property-read string $name
  * @property-read string $slug
  * @property-read CollectionType $type
@@ -45,6 +48,7 @@ class Collection extends Model implements CollectionContract, ShopperHasMedia
 
     use HasMediaCollections;
     use HasModelContract;
+    use HasPublicId;
     use HasSlug;
 
     protected $guarded = [];
@@ -108,34 +112,6 @@ class Collection extends Model implements CollectionContract, ShopperHasMedia
     }
 
     /**
-     * @param  Builder<static>  $query
-     * @return Builder<static>
-     */
-    public function scopeManual(Builder $query): Builder
-    {
-        return $query->where('type', CollectionType::Manual);
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @return Builder<static>
-     */
-    public function scopeAutomatic(Builder $query): Builder
-    {
-        return $query->where('type', CollectionType::Auto);
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @return Builder<static>
-     */
-    public function scopePublished(Builder $query): Builder
-    {
-        return $query->whereNotNull('published_at')
-            ->where('published_at', '<=', now());
-    }
-
-    /**
      * @return MorphToMany<Product, $this>
      */
     public function products(): MorphToMany
@@ -162,6 +138,37 @@ class Collection extends Model implements CollectionContract, ShopperHasMedia
     protected static function newFactory(): CollectionFactory
     {
         return CollectionFactory::new();
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function published(Builder $query): Builder
+    {
+        return $query->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function automatic(Builder $query): Builder
+    {
+        return $query->where('type', CollectionType::Auto);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function manual(Builder $query): Builder
+    {
+        return $query->where('type', CollectionType::Manual);
     }
 
     protected function casts(): array

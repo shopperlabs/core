@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,11 +13,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Shopper\Core\Database\Factories\ChannelFactory;
 use Shopper\Core\Models\Contracts\Channel as ChannelContract;
+use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Models\Traits\HasSlug;
 use Shopper\Core\Traits\HasModelContract;
 
 /**
  * @property-read int $id
+ * @property-read ?string $public_id
  * @property-read string $name
  * @property-read ?string $slug
  * @property-read ?string $description
@@ -35,6 +38,7 @@ class Channel extends Model implements ChannelContract
     use HasFactory;
 
     use HasModelContract;
+    use HasPublicId;
     use HasSlug;
 
     protected $guarded = [];
@@ -47,24 +51,6 @@ class Channel extends Model implements ChannelContract
     public function getTable(): string
     {
         return shopper_table('channels');
-    }
-
-    /**
-     * @param  Builder<Channel>  $query
-     * @return Builder<Channel>
-     */
-    public function scopeDefault(Builder $query): Builder
-    {
-        return $query->where('is_default', true);
-    }
-
-    /**
-     * @param  Builder<Channel>  $query
-     * @return Builder<Channel>
-     */
-    public function scopeEnabled(Builder $query): Builder
-    {
-        return $query->where('is_enabled', true);
     }
 
     /**
@@ -82,6 +68,26 @@ class Channel extends Model implements ChannelContract
     protected static function newFactory(): ChannelFactory
     {
         return ChannelFactory::new();
+    }
+
+    /**
+     * @param  Builder<Channel>  $query
+     * @return Builder<Channel>
+     */
+    #[Scope]
+    protected function default(Builder $query): Builder
+    {
+        return $query->where('is_default', true);
+    }
+
+    /**
+     * @param  Builder<Channel>  $query
+     * @return Builder<Channel>
+     */
+    #[Scope]
+    protected function enabled(Builder $query): Builder
+    {
+        return $query->where('is_enabled', true);
     }
 
     protected function casts(): array

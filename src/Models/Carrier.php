@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,11 +13,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Shopper\Core\Database\Factories\CarrierFactory;
 use Shopper\Core\Models\Contracts\Carrier as CarrierContract;
+use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Models\Traits\HasSlug;
 use Shopper\Core\Models\Traits\HasZones;
 
 /**
  * @property-read int $id
+ * @property-read ?string $public_id
  * @property-read string $name
  * @property-read bool $is_enabled
  * @property-read ?string $slug
@@ -34,6 +37,7 @@ class Carrier extends Model implements CarrierContract
     /** @use HasFactory<CarrierFactory> */
     use HasFactory;
 
+    use HasPublicId;
     use HasSlug;
     use HasZones;
 
@@ -42,15 +46,6 @@ class Carrier extends Model implements CarrierContract
     public function getTable(): string
     {
         return shopper_table('carriers');
-    }
-
-    /**
-     * @param  Builder<Carrier>  $query
-     * @return Builder<Carrier>
-     */
-    public function scopeEnabled(Builder $query): Builder
-    {
-        return $query->where('is_enabled', true);
     }
 
     /**
@@ -76,6 +71,16 @@ class Carrier extends Model implements CarrierContract
     protected static function newFactory(): CarrierFactory
     {
         return CarrierFactory::new();
+    }
+
+    /**
+     * @param  Builder<Carrier>  $query
+     * @return Builder<Carrier>
+     */
+    #[Scope]
+    protected function enabled(Builder $query): Builder
+    {
+        return $query->where('is_enabled', true);
     }
 
     protected function casts(): array

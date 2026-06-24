@@ -104,6 +104,7 @@ final class CoreServiceProvider extends PackageServiceProvider
             'collection' => Models\Contracts\Collection::class,
             'product' => Models\Contracts\Product::class,
             'variant' => Models\Contracts\ProductVariant::class,
+            'attribute_product' => Models\Contracts\AttributeProduct::class,
             'channel' => Models\Contracts\Channel::class,
             'order' => Models\Contracts\Order::class,
             'inventory' => Models\Contracts\Inventory::class,
@@ -138,6 +139,7 @@ final class CoreServiceProvider extends PackageServiceProvider
             'collection' => config('shopper.models.collection'),
             'product' => config('shopper.models.product'),
             'variant' => config('shopper.models.variant'),
+            'attribute_product' => config('shopper.models.attribute_product'),
             'channel' => config('shopper.models.channel'),
             'order' => config('shopper.models.order'),
             'inventory' => config('shopper.models.inventory'),
@@ -145,6 +147,10 @@ final class CoreServiceProvider extends PackageServiceProvider
             'tax_zone' => config('shopper.models.tax_zone'),
             'tax_rate' => config('shopper.models.tax_rate'),
             'product_tag' => Models\ProductTag::class,
+            'country' => Models\Country::class,
+            'carrier' => Models\Carrier::class,
+            'carrier_option' => Models\CarrierOption::class,
+            'payment_method' => Models\PaymentMethod::class,
         ]);
     }
 }

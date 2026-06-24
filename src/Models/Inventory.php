@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,10 +13,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Shopper\Core\Database\Factories\InventoryFactory;
 use Shopper\Core\Models\Contracts\Inventory as InventoryContract;
+use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Traits\HasModelContract;
 
 /**
  * @property-read int $id
+ * @property-read ?string $public_id
  * @property-read int $country_id
  * @property-read string $name
  * @property-read string $code
@@ -42,6 +45,7 @@ class Inventory extends Model implements InventoryContract
     use HasFactory;
 
     use HasModelContract;
+    use HasPublicId;
 
     protected $guarded = [];
 
@@ -53,15 +57,6 @@ class Inventory extends Model implements InventoryContract
     public function getTable(): string
     {
         return shopper_table('inventories');
-    }
-
-    /**
-     * @param  Builder<Inventory>  $query
-     * @return Builder<Inventory>
-     */
-    public function scopeDefault(Builder $query): Builder
-    {
-        return $query->where('is_default', true);
     }
 
     /**
@@ -83,6 +78,16 @@ class Inventory extends Model implements InventoryContract
     protected static function newFactory(): InventoryFactory
     {
         return InventoryFactory::new();
+    }
+
+    /**
+     * @param  Builder<Inventory>  $query
+     * @return Builder<Inventory>
+     */
+    #[Scope]
+    protected function default(Builder $query): Builder
+    {
+        return $query->where('is_default', true);
     }
 
     protected function casts(): array

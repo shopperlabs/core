@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +14,13 @@ use Shopper\Core\Contracts\Media\HasMedia as ShopperHasMedia;
 use Shopper\Core\Database\Factories\BrandFactory;
 use Shopper\Core\Models\Contracts\Brand as BrandContract;
 use Shopper\Core\Models\Traits\HasMediaCollections;
+use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Models\Traits\HasSlug;
 use Shopper\Core\Traits\HasModelContract;
 
 /**
  * @property-read int $id
+ * @property-read ?string $public_id
  * @property-read string $name
  * @property-read ?string $slug
  * @property-read ?string $website
@@ -38,6 +41,7 @@ class Brand extends Model implements BrandContract, ShopperHasMedia
 
     use HasMediaCollections;
     use HasModelContract;
+    use HasPublicId;
     use HasSlug;
 
     protected $guarded = [];
@@ -58,15 +62,6 @@ class Brand extends Model implements BrandContract, ShopperHasMedia
     }
 
     /**
-     * @param  Builder<Brand>  $query
-     * @return Builder<Brand>
-     */
-    public function scopeEnabled(Builder $query): Builder
-    {
-        return $query->where('is_enabled', true);
-    }
-
-    /**
      * @return HasMany<Product, $this>
      */
     public function products(): HasMany
@@ -77,6 +72,16 @@ class Brand extends Model implements BrandContract, ShopperHasMedia
     protected static function newFactory(): BrandFactory
     {
         return BrandFactory::new();
+    }
+
+    /**
+     * @param  Builder<Brand>  $query
+     * @return Builder<Brand>
+     */
+    #[Scope]
+    protected function enabled(Builder $query): Builder
+    {
+        return $query->where('is_enabled', true);
     }
 
     protected function casts(): array

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopper\Core\Models;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -15,10 +16,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Shopper\Core\Database\Factories\ZoneFactory;
 use Shopper\Core\Models\Contracts\Zone as ZoneContract;
+use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Models\Traits\HasSlug;
 
 /**
  * @property-read int $id
+ * @property-read ?string $public_id
  * @property-read string $name
  * @property-read string $slug
  * @property-read ?string $code
@@ -31,7 +34,7 @@ use Shopper\Core\Models\Traits\HasSlug;
  * @property-read string $countries_name
  * @property-read string $payments_name
  * @property-read string $currency_code
- * @property-read Currency $currency
+ * @property-read ?Currency $currency
  * @property-read EloquentCollection<int, Carrier> $carriers
  * @property-read EloquentCollection<int, CarrierOption> $shippingOptions
  * @property-read EloquentCollection<int, PaymentMethod> $paymentMethods
@@ -43,6 +46,7 @@ class Zone extends Model implements ZoneContract
     /** @use HasFactory<ZoneFactory> */
     use HasFactory;
 
+    use HasPublicId;
     use HasSlug;
 
     protected $guarded = [];
@@ -96,15 +100,6 @@ class Zone extends Model implements ZoneContract
     }
 
     /**
-     * @param  Builder<Zone>  $query
-     * @return Builder<Zone>
-     */
-    public function scopeEnabled(Builder $query): Builder
-    {
-        return $query->where('is_enabled', true);
-    }
-
-    /**
      * @return BelongsTo<Currency, $this>
      */
     public function currency(): BelongsTo
@@ -155,6 +150,16 @@ class Zone extends Model implements ZoneContract
     protected static function newFactory(): ZoneFactory
     {
         return ZoneFactory::new();
+    }
+
+    /**
+     * @param  Builder<Zone>  $query
+     * @return Builder<Zone>
+     */
+    #[Scope]
+    protected function enabled(Builder $query): Builder
+    {
+        return $query->where('is_enabled', true);
     }
 
     protected function casts(): array

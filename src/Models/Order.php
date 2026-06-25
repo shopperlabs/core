@@ -21,6 +21,7 @@ use Shopper\Core\Enum\ShippingStatus;
 use Shopper\Core\Models\Contracts\Order as OrderContract;
 use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Traits\HasModelContract;
+use Shopper\Core\Traits\HasOrderStatusTransitions;
 
 /**
  * @property-read int $id
@@ -70,6 +71,7 @@ class Order extends Model implements OrderContract
     use HasFactory;
 
     use HasModelContract;
+    use HasOrderStatusTransitions;
     use HasPublicId;
     use SoftDeletes;
 
@@ -296,6 +298,15 @@ class Order extends Model implements OrderContract
     public function shippingOption(): BelongsTo
     {
         return $this->belongsTo(CarrierOption::class, 'shipping_option_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Order $order): void {
+            if (blank($order->getAttribute('number'))) {
+                $order->setAttribute('number', generate_number());
+            }
+        });
     }
 
     protected static function newFactory(): OrderFactory

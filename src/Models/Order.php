@@ -22,11 +22,12 @@ use Shopper\Core\Models\Contracts\Order as OrderContract;
 use Shopper\Core\Models\Traits\HasPublicId;
 use Shopper\Core\Traits\HasModelContract;
 use Shopper\Core\Traits\HasOrderStatusTransitions;
+use Shopper\Core\Traits\HasPaymentStatusTransitions;
 
 /**
  * @property-read int $id
  * @property-read ?string $public_id
- * @property-read string $number
+ * @property-read ?string $number
  * @property-read int $price_amount
  * @property-read ?int $tax_amount
  * @property-read ?int $shipping_amount
@@ -72,6 +73,7 @@ class Order extends Model implements OrderContract
 
     use HasModelContract;
     use HasOrderStatusTransitions;
+    use HasPaymentStatusTransitions;
     use HasPublicId;
     use SoftDeletes;
 
@@ -302,9 +304,12 @@ class Order extends Model implements OrderContract
 
     protected static function booted(): void
     {
-        static::creating(function (Order $order): void {
+        // The number derives from the row's own id after insert, so two
+        // concurrent checkouts can never generate the same number the way a
+        // max-plus-one read in `creating` could. The unique index backs it up.
+        static::created(function (Order $order): void {
             if (blank($order->getAttribute('number'))) {
-                $order->setAttribute('number', generate_number());
+                $order->updateQuietly(['number' => generate_number($order->id)]);
             }
         });
     }

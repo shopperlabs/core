@@ -5,12 +5,20 @@ declare(strict_types=1);
 namespace Shopper\Core;
 
 use Carbon\Carbon;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Shopper\Core\Channel\ChannelManager;
+use Shopper\Core\Console\ReclaimPendingOrdersCommand;
+use Shopper\Core\Console\ReconcileStockLevelsCommand;
+use Shopper\Core\Console\RedispatchWebhooksCommand;
 use Shopper\Core\Console\SyncCollectionsCommand;
 use Shopper\Core\Contracts\InventoryResolver;
+use Shopper\Core\Contracts\PriceResolver;
 use Shopper\Core\Contracts\StockAllocator;
 use Shopper\Core\Contracts\StockReserver;
 use Shopper\Core\Contracts\TaxCalculationProvider;
+use Shopper\Core\Contracts\WebhookPayloadSerializer;
+use Shopper\Core\Listeners\DispatchWebhooksListener;
 use Shopper\Core\Models\Address;
 use Shopper\Core\Models\Attribute;
 use Shopper\Core\Models\Category;
@@ -21,6 +29,7 @@ use Shopper\Core\Models\Order;
 use Shopper\Core\Models\OrderItem;
 use Shopper\Core\Models\Product;
 use Shopper\Core\Models\ProductVariant;
+use Shopper\Core\Models\TaxZone;
 use Shopper\Core\Observers\AddressObserver;
 use Shopper\Core\Observers\AttributeObserver;
 use Shopper\Core\Observers\CategoryObserver;
@@ -31,12 +40,15 @@ use Shopper\Core\Observers\OrderItemObserver;
 use Shopper\Core\Observers\OrderObserver;
 use Shopper\Core\Observers\ProductObserver;
 use Shopper\Core\Observers\ProductVariantObserver;
+use Shopper\Core\Observers\TaxZoneObserver;
+use Shopper\Core\Pricing\CatalogPriceResolver;
 use Shopper\Core\Stock\DefaultInventoryResolver;
 use Shopper\Core\Stock\LockingStockReserver;
 use Shopper\Core\Stock\PriorityStockAllocator;
 use Shopper\Core\Taxes\SystemTaxProvider;
 use Shopper\Core\Taxes\TaxCalculator;
 use Shopper\Core\Traits\HasRegisterConfigAndMigrationFiles;
+use Shopper\Core\Webhooks\DefaultWebhookPayloadSerializer;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -48,6 +60,7 @@ final class CoreServiceProvider extends PackageServiceProvider
     protected array $configFiles = [
         'core',
         'orders',
+        'webhooks',
     ];
 
     protected string $root = __DIR__.'/..';
@@ -58,6 +71,9 @@ final class CoreServiceProvider extends PackageServiceProvider
             ->name('shopper-core')
             ->hasTranslations()
             ->hasCommands([
+                ReclaimPendingOrdersCommand::class,
+                ReconcileStockLevelsCommand::class,
+                RedispatchWebhooksCommand::class,
                 SyncCollectionsCommand::class,
             ]);
     }
@@ -70,6 +86,8 @@ final class CoreServiceProvider extends PackageServiceProvider
         $this->registerModelBindings();
         $this->bootModelRelationName();
         $this->registerObservers();
+        $this->scheduleCommands();
+        $this->registerWebhookListener();
     }
 
     public function packageRegistered(): void
@@ -80,6 +98,37 @@ final class CoreServiceProvider extends PackageServiceProvider
         $this->registerDatabase();
         $this->registerStockAllocator();
         $this->registerTaxCalculator();
+        $this->registerPriceResolver();
+        $this->registerChannelManager();
+
+        $this->app->singleton(WebhookPayloadSerializer::class, DefaultWebhookPayloadSerializer::class);
+    }
+
+    protected function registerWebhookListener(): void
+    {
+        $this->app->booted(function (): void {
+            /** @var array<class-string, string> $events */
+            $events = (array) config('shopper.webhooks.events', []);
+
+            if ($events !== []) {
+                $this->app['events']->listen(array_keys($events), DispatchWebhooksListener::class);
+            }
+        });
+    }
+
+    protected function scheduleCommands(): void
+    {
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+            if (config('shopper.orders.reclaim_pending_after_hours')) {
+                $schedule->command('shopper:orders:reclaim')->hourly();
+            }
+
+            $schedule->command('shopper:webhooks:redispatch')->everyFifteenMinutes();
+
+            $schedule->command('model:prune', [
+                '--model' => [Models\WebhookDelivery::class, Models\WebhookEvent::class],
+            ])->daily();
+        });
     }
 
     protected function registerObservers(): void
@@ -91,6 +140,7 @@ final class CoreServiceProvider extends PackageServiceProvider
         Order::observeUsingConfiguredClass(OrderObserver::class);
         Product::observeUsingConfiguredClass(ProductObserver::class);
         ProductVariant::observeUsingConfiguredClass(ProductVariantObserver::class);
+        TaxZone::observeUsingConfiguredClass(TaxZoneObserver::class);
 
         Attribute::observe(AttributeObserver::class);
         Discount::observe(DiscountObserver::class);
@@ -131,6 +181,16 @@ final class CoreServiceProvider extends PackageServiceProvider
     {
         $this->app->singleton(TaxCalculationProvider::class, SystemTaxProvider::class);
         $this->app->singleton(TaxCalculator::class);
+    }
+
+    protected function registerPriceResolver(): void
+    {
+        $this->app->singleton(PriceResolver::class, CatalogPriceResolver::class);
+    }
+
+    protected function registerChannelManager(): void
+    {
+        $this->app->singleton(ChannelManager::class, fn (): ChannelManager => new ChannelManager);
     }
 
     protected function bootModelRelationName(): void
